@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://ccwt5vlfksxqv"]
+[gd_scene load_steps=6 format=3 uid="uid://ccwt5vlfksxqv"]
 
 [ext_resource type="PackedScene" uid="uid://bpb5p32e5r0ub" path="res://Prefabs/UI/lifebar.tscn" id="2_b3dd8"]
 [ext_resource type="PackedScene" uid="uid://oqbxhb2symxp" path="res://Prefabs/UI/powerup_block.tscn" id="2_cdj2w"]
 [ext_resource type="Script" uid="uid://bttsdt8w0l4ni" path="res://Scripts/UI/UpgradeView.cs" id="2_esggw"]
 [ext_resource type="Script" path="res://Scripts/UI/RunResultsView.cs" id="4_results"]
+[ext_resource type="Script" path="res://Scripts/UI/SpawnWarningView.cs" id="5_spawn_warning"]
 
 [node name="HUD" type="Control"]
 layout_mode = 3
@@ -43,6 +44,28 @@ offset_right = 40.0
 offset_bottom = 80.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="SpawnWarning" type="Control" parent="."]
+process_mode = 3
+z_index = 3
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("5_spawn_warning")
+
+[node name="Indicator" type="Label" parent="SpawnWarning"]
+layout_mode = 0
+offset_right = 48.0
+offset_bottom = 48.0
+theme_override_font_sizes/font_size = 30
+text = "▲"
+horizontal_alignment = 1
+vertical_alignment = 1
+mouse_filter = 2
 
 [node name="UpgradeContainer" type="HBoxContainer" parent="."]
 z_index = 1

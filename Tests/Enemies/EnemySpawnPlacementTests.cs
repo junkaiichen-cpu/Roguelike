@@ -25,6 +25,17 @@ public sealed class EnemySpawnPlacementTests
     }
 
     [Fact]
+    public void SpawnBandUsesHorizontalDistanceOnly()
+    {
+        bool isWithinBand = EnemySpawnPlacement.IsWithinSpawnBand(
+            new Vector3(5f, 20f, -3f),
+            new Vector3(35f, -100f, -3f),
+            Configuration);
+
+        Assert.True(isWithinBand);
+    }
+
+    [Fact]
     public void FallbackIsSafeAndUsesTheMaximumDistance()
     {
         Vector3 playerPosition = new(5f, 2f, -3f);
@@ -32,6 +43,9 @@ public sealed class EnemySpawnPlacementTests
         Vector3 fallback = EnemySpawnPlacement.GetFallbackPosition(playerPosition, Configuration);
 
         Assert.True(EnemySpawnPlacement.IsWithinSpawnBand(playerPosition, fallback, Configuration));
+        Assert.True(float.IsFinite(fallback.X));
+        Assert.True(float.IsFinite(fallback.Y));
+        Assert.True(float.IsFinite(fallback.Z));
         Assert.Equal(36f, Vector3.Distance(playerPosition, fallback), 5);
     }
 
@@ -41,6 +55,15 @@ public sealed class EnemySpawnPlacementTests
         Assert.False(EnemySpawnPlacement.IsWithinSpawnBand(
             Vector3.Zero,
             new Vector3(float.NaN, 0, 0),
+            Configuration));
+    }
+
+    [Fact]
+    public void RejectsNonFinitePlayerPositions()
+    {
+        Assert.False(EnemySpawnPlacement.IsWithinSpawnBand(
+            new Vector3(float.PositiveInfinity, 0, 0),
+            new Vector3(30, 0, 0),
             Configuration));
     }
 

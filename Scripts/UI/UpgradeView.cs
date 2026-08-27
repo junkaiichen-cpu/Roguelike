@@ -6,8 +6,6 @@ public partial class UpgradeView : Control
 {
     private PackedScene _choicePanel;
 
-    private List<Choice> _choices;
-
     public event Action<Choice> OnChoose;
 
     // Called when the node enters the scene tree for the first time.
@@ -31,8 +29,6 @@ public partial class UpgradeView : Control
     {
         Clear();
 
-        _choices = choices;
-        int choiceIndex = 1;
         foreach (var choice in choices)
         {
             var panel = _choicePanel.Instantiate<Button>();
@@ -45,14 +41,12 @@ public partial class UpgradeView : Control
             AddChild(panel);
 
             var name = panel.GetNode<Label>("MarginContainer/VBoxContainer/VBoxPlayer/Name");
-            name.Text = choice.Powerup.Name;
+            name.Text = choice.Upgrade.DisplayName;
             var description = panel.GetNode<Label>("MarginContainer/VBoxContainer/VBoxPlayer/Description");
-            description.Text = choice.Powerup.Description;
+            description.Text = choice.Upgrade.Description;
 
-            name = panel.GetNode<Label>("MarginContainer/VBoxContainer/VBoxEnemy/Name");
-            name.Text = choice.EnemyPowerup.Name;
-            description = panel.GetNode<Label>("MarginContainer/VBoxContainer/VBoxEnemy/Description");
-            description.Text = string.Format(choice.EnemyPowerup.Description, Math.Round(choice.EnemyValue, 1));
+            panel.GetNode<Control>("MarginContainer/VBoxContainer/Separator").Visible = false;
+            panel.GetNode<Control>("MarginContainer/VBoxContainer/VBoxEnemy").Visible = false;
         }
     }
 

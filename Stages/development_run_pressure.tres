@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="StagePressureConfiguration" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Run/StagePressureConfiguration.cs" id="1_configuration"]
+[ext_resource type="Resource" path="res://Stages/development_pressure_stage_01.tres" id="2_stage_01"]
+[ext_resource type="Resource" path="res://Stages/development_pressure_stage_02.tres" id="3_stage_02"]
+[ext_resource type="Resource" path="res://Stages/development_pressure_stage_03.tres" id="4_stage_03"]
+[ext_resource type="Resource" path="res://Stages/development_pressure_stage_04.tres" id="5_stage_04"]
+[ext_resource type="Resource" path="res://Bosses/development_boss.tres" id="6_boss"]
+
+[resource]
+script = ExtResource("1_configuration")
+BaseSpawnIntervalSeconds = 1.0
+BaseMaxActiveEnemies = 20
+EnemySpawnMinimumDistance = 30.0
+EnemySpawnMaximumDistance = 36.0
+EnemySpawnMaximumAttempts = 8
+Stages = Array[Resource]([ExtResource("2_stage_01"), ExtResource("3_stage_02"), ExtResource("4_stage_03"), ExtResource("5_stage_04")])
+CompletionBoss = ExtResource("6_boss")

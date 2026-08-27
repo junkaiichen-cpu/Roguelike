@@ -33,6 +33,16 @@ public partial class DamageLabelManager : Control
     {
     }
 
+    public override void _ExitTree()
+    {
+        if (_gameManager != null)
+        {
+            _gameManager.OnEnemyHit -= OnEnemyHit;
+        }
+
+        base._ExitTree();
+    }
+
     public Label GetLabel()
     {
         var label = _queue.Count == 0 ? new Label() { ProcessMode = ProcessModeEnum.Always } : _queue.Dequeue();

@@ -30,9 +30,9 @@ axis_lock_linear_y = true
 axis_lock_angular_x = true
 axis_lock_angular_z = true
 script = ExtResource("1_s25o6")
-Lifepoints = 5
+MaxHealth = 5
 Damages = 20
-Experience = 2
+ExperienceReward = 2
 
 [node name="EnemySkeletonMage" parent="." instance=ExtResource("2_0bu1t")]
 

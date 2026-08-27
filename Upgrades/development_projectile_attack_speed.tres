@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="TemporaryUpgradeDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Progression/TemporaryUpgradeDefinition.cs" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+Id = "development_projectile_attack_speed"
+DisplayName = "Development Projectile Attack Speed"
+Description = "Increase development projectile attacks per second by 0.25."
+Effect = 1
+Amount = 0.25
+MaxApplications = 6

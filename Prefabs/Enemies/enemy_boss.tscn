@@ -61,10 +61,10 @@ axis_lock_linear_y = true
 axis_lock_angular_x = true
 axis_lock_angular_z = true
 script = ExtResource("1_gq7vj")
-Lifepoints = 300
+MaxHealth = 300
 Damages = 50
 MovementSpeed = 2.0
-Experience = 20
+ExperienceReward = 20
 
 [node name="EnemySkeletonWarrior" parent="." instance=ExtResource("2_0oqdm")]
 

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ProjectileWeaponDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Players/ProjectileWeaponDefinition.cs" id="1_definition"]
+[ext_resource type="PackedScene" path="res://Prefabs/Powerups/bullet.tscn" id="2_projectile"]
+
+[resource]
+script = ExtResource("1_definition")
+BaseDamage = 5
+AttacksPerSecond = 1.0
+ProjectileSpeed = 5.0
+ProjectileScene = ExtResource("2_projectile")

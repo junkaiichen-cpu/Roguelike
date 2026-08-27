@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="BossDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Enemies/BossDefinition.cs" id="1_definition"]
+[ext_resource type="PackedScene" path="res://Prefabs/Enemies/enemy_boss.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_definition")
+Id = "development_boss"
+DisplayName = "Development Boss"
+EnemyScene = ExtResource("2_scene")

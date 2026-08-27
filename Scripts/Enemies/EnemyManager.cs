@@ -1,16 +1,14 @@
 ﻿using Godot;
 using System.Collections.Generic;
-using System.Linq;
 
 internal class EnemyManager
 {
-    public const int EnemySpawnRange = 30;
-
     public float SpawnRate { get; private set; } = 1;
 
     public float SpawnDelay => 1f / SpawnRate;
 
     private readonly GameManager _gameManager;
+    private readonly EnemySpawnConfiguration _spawnConfiguration;
     private readonly Dictionary<EnemyClass, PackedScene> _enemyPrefabs;
     private readonly List<Enemy> _enemies = new();
     public List<Enemy> Enemies => _enemies;
@@ -21,9 +19,10 @@ internal class EnemyManager
     private uint _damageBonus = 0;
     private float _movespeedBonus = 0;
 
-    public EnemyManager(GameManager gameManager)
+    public EnemyManager(GameManager gameManager, EnemySpawnConfiguration spawnConfiguration)
     {
         _gameManager = gameManager;
+        _spawnConfiguration = spawnConfiguration ?? throw new System.ArgumentNullException(nameof(spawnConfiguration));
 
         _enemyPrefabs = new()
         {
@@ -35,28 +34,33 @@ internal class EnemyManager
         };
     }
 
-    public void _PhysicsProcess(double delta)
-    {
-        foreach (var enemy in Enemies.Where(enemy => !enemy.GetTree().Paused))
-        {
-            var playerPos = _gameManager.Player.GlobalPosition;
-            var direction = (playerPos - enemy.GlobalPosition).LimitLength();
-
-            enemy.LinearVelocity = direction * enemy.MovementSpeed;
-        }
-    }
-
     internal Enemy SpawnEnemy() => SpawnEnemy(_enemyClasses[GD.RandRange(0, _enemyClasses.Count - 1)]);
 
     internal Enemy SpawnEnemy(EnemyClass enemyClass)
     {
-        var enemy = _enemyPrefabs[enemyClass].Instantiate<Enemy>();
-        enemy.Name = enemyClass.ToString();
-        enemy.Lifepoints = enemy.Lifepoints * _gameManager.GetMaxEnemyLifepoints() + _lifepointsBonus;
+        return SpawnEnemy(_enemyPrefabs[enemyClass], enemyClass.ToString());
+    }
+
+    internal Enemy SpawnBoss(BossDefinition definition)
+    {
+        if (definition == null || definition.EnemyScene == null)
+        {
+            GD.PushError("A boss definition requires an enemy scene.");
+            return null;
+        }
+
+        return SpawnEnemy(definition.EnemyScene, definition.Id);
+    }
+
+    private Enemy SpawnEnemy(PackedScene enemyScene, string enemyName)
+    {
+        var enemy = enemyScene.Instantiate<Enemy>();
+        enemy.Name = enemyName;
+        enemy.MaxHealth = GetSpawnHealth(enemy.MaxHealth);
         enemy.Damages += _damageBonus;
         enemy.MovementSpeed += _movespeedBonus;
         enemy.Position = GetRandomPos();
-        enemy.TreeExiting += () => KillEnemy(enemy);
+        enemy.Died += OnEnemyDied;
         _gameManager.GetNode("/root/MainScene").AddChild(enemy);
         _enemies.Add(enemy);
         enemy.Connect(Enemy.SignalName.OnEnemyHit, Callable.From<Enemy, int>(_gameManager.EnemyHit));
@@ -65,13 +69,64 @@ internal class EnemyManager
 
     internal Enemy SpawnBoss() => SpawnEnemy(EnemyClass.Boss);
 
-    private void KillEnemy(Enemy enemy)
+    internal void ClearEnemies()
     {
-        _enemies.Remove(enemy);
-        _gameManager.EnemyKilled(enemy.Experience);
+        foreach (Enemy enemy in _enemies)
+        {
+            if (GodotObject.IsInstanceValid(enemy))
+            {
+                enemy.QueueFree();
+            }
+        }
+
+        _enemies.Clear();
     }
 
-    private Vector3 GetRandomPos() => _gameManager.GetRandomPosAroundPlayer(EnemySpawnRange);
+    private void OnEnemyDied(Enemy enemy)
+    {
+        if (!_enemies.Remove(enemy)) return;
+
+        _gameManager.SpawnExperiencePickup(enemy.GlobalPosition, enemy.ExperienceReward);
+    }
+
+    private Vector3 GetRandomPos()
+    {
+        Vector3 playerPosition = _gameManager.Player.GlobalPosition;
+        for (int attempt = 0; attempt < _spawnConfiguration.MaximumAttempts; attempt++)
+        {
+            float angle = GD.Randf() * Mathf.Tau;
+            float distance = Mathf.Lerp(
+                _spawnConfiguration.MinimumDistance,
+                _spawnConfiguration.MaximumDistance,
+                GD.Randf());
+            Vector3 candidate = playerPosition + new Vector3(
+                Mathf.Cos(angle) * distance,
+                0,
+                Mathf.Sin(angle) * distance);
+
+            if (EnemySpawnPlacement.IsWithinSpawnBand(
+                    ToNumericsVector3(playerPosition),
+                    ToNumericsVector3(candidate),
+                    _spawnConfiguration))
+            {
+                return candidate;
+            }
+        }
+
+        return ToGodotVector3(EnemySpawnPlacement.GetFallbackPosition(
+            ToNumericsVector3(playerPosition),
+            _spawnConfiguration));
+    }
+
+    private static System.Numerics.Vector3 ToNumericsVector3(Vector3 vector) => new(vector.X, vector.Y, vector.Z);
+
+    private static Vector3 ToGodotVector3(System.Numerics.Vector3 vector) => new(vector.X, vector.Y, vector.Z);
+
+    private uint GetSpawnHealth(uint baseHealth)
+    {
+        long scaledHealth = (long)baseHealth * _gameManager.GetMaxEnemyLifepoints() + _lifepointsBonus;
+        return (uint)System.Math.Clamp(scaledHealth, 1L, (long)uint.MaxValue);
+    }
 
     internal void Upgrade(EnemyPowerup enemyPowerup)
     {

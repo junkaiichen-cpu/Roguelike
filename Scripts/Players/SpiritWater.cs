@@ -32,7 +32,7 @@ public partial class SpiritWater : Node3D, IUpgradable
     private Timer _projectileCooldown;
     private Timer _damageCooldown;
 
-    private List<Enemy> _enemies = new();
+    private readonly HashSet<Enemy> _enemies = new();
     private GameManager _gameManager;
 
     // Called when the node enters the scene tree for the first time.
@@ -73,12 +73,16 @@ public partial class SpiritWater : Node3D, IUpgradable
     private void OnBodyEntered(Node3D body)
     {
         if (body is not Enemy enemy) return;
-        _enemies.Add(enemy);
+        if (!enemy.IsDead)
+        {
+            _enemies.Add(enemy);
+        }
     }
 
     private void OnDamageReady()
     {
         _damageCooldown.Start();
+        _enemies.RemoveWhere(enemy => !GodotObject.IsInstanceValid(enemy) || enemy.IsDead);
         foreach (var enemy in _enemies)
             enemy.TakeDamages(TotalDamages);
     }

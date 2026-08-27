@@ -1,10 +1,11 @@
-[gd_scene load_steps=2 format=3 uid="uid://cjgoeugpyg7n1"]
+[gd_scene load_steps=3 format=3 uid="uid://cjgoeugpyg7n1"]
 
 [ext_resource type="Script" uid="uid://byic06iag5d7d" path="res://Scripts/Players/Shooting.cs" id="1_fngij"]
+[ext_resource type="Resource" path="res://Weapons/development_projectile_weapon.tres" id="2_definition"]
 
 [node name="Shooting" type="Node3D"]
 script = ExtResource("1_fngij")
-BulletSpeed = 4.0
+Definition = ExtResource("2_definition")
 
 [node name="Timer" type="Timer" parent="."]
 autostart = true

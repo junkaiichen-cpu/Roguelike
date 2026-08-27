@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../Scripts/Enemies/EnemyPursuit.cs" Link="EnemyPursuit.cs" />
+    <Compile Include="../Scripts/Enemies/EnemyRuntimeState.cs" Link="EnemyRuntimeState.cs" />
+    <Compile Include="../Scripts/Enemies/EnemySpawnConfiguration.cs" Link="EnemySpawnConfiguration.cs" />
+    <Compile Include="../Scripts/Players/ProjectileWeaponTiming.cs" Link="ProjectileWeaponTiming.cs" />
+    <Compile Include="../Scripts/Players/ProjectileLifetimeState.cs" Link="ProjectileLifetimeState.cs" />
+    <Compile Include="../Scripts/Players/PlayerProgressionState.cs" Link="PlayerProgressionState.cs" />
+    <Compile Include="../Scripts/Players/PlayerRuntimeState.cs" Link="PlayerRuntimeState.cs" />
+    <Compile Include="../Scripts/Run/RunPressureState.cs" Link="RunPressureState.cs" />
+    <Compile Include="../Scripts/Run/RunResultState.cs" Link="RunResultState.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

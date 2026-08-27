@@ -2,54 +2,65 @@
 
 using Godot;
 
-public partial class Shooting : Node3D, IUpgradable
+public partial class Shooting : Node3D, IUpgradable, ITemporaryUpgradeReceiver
 {
     [Export]
-    public uint Damages = 5;
+    public ProjectileWeaponDefinition Definition { get; set; }
 
     private uint _damagesBonus = 0;
 
-    [Export]
-    public float AttackSpeed = 1;
-
     private float _attackSpeedBonus = 0;
 
-    public float TotalAttackSpeed => AttackSpeed + _attackSpeedBonus;
-
-    [Export]
-    public float BulletSpeed = 2;
+    public float TotalAttackSpeed => Definition.AttacksPerSecond + _attackSpeedBonus;
 
     private float _bulletSpeedBonus = 0;
 
-    public float TotalBulletSpeed => BulletSpeed + _bulletSpeedBonus;
-
-    private PackedScene _bulletPrefab;
+    public float TotalBulletSpeed => Definition.ProjectileSpeed + _bulletSpeedBonus;
 
     private GameManager _gameManager;
+    private Player _player;
 
     private Timer _timer;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
-        _gameManager = GetNode<GameManager>("/root/GameManager");
-        _bulletPrefab = (PackedScene)GD.Load("res://Prefabs/Powerups/bullet.tscn");
-
         _timer = GetNode<Timer>("Timer");
-        _timer.WaitTime = 1f / TotalAttackSpeed;
+        if (Definition == null || Definition.ProjectileScene == null || Definition.BaseDamage == 0 ||
+            Definition.AttacksPerSecond <= 0 || Definition.ProjectileSpeed <= 0)
+        {
+            GD.PushError($"{Name} requires a valid projectile weapon definition and projectile scene.");
+            _timer.Stop();
+            return;
+        }
+
+        _gameManager = GetNode<GameManager>("/root/GameManager");
+        _player = GetParent<Player>();
+        _player.Died += StopAttacking;
+
+        _timer.WaitTime = ProjectileWeaponTiming.GetCooldownSeconds(TotalAttackSpeed);
         _timer.Timeout += Shoot;
         _timer.Start();
     }
 
+    public override void _ExitTree()
+    {
+        if (_player != null)
+        {
+            _player.Died -= StopAttacking;
+        }
+
+        base._ExitTree();
+    }
+
     private void Shoot()
     {
-        _timer.Start();
+        if (_player.IsDead) return;
 
         var nearestEnemy = _gameManager.GetNearestEnemy();
-        if (nearestEnemy == null) return;
+        if (nearestEnemy == null || nearestEnemy.IsDead) return;
 
-        var bullet = _bulletPrefab.Instantiate<RigidBody3D>();
-        //bullet.ConstantForce = TotalBulletSpeed * (nearestEnemy.GlobalPosition - GlobalPosition).Normalized();
+        var bullet = Definition.ProjectileScene.Instantiate<RigidBody3D>();
         bullet.LinearVelocity = TotalBulletSpeed * (nearestEnemy.GlobalPosition - GlobalPosition).Normalized();
         bullet.BodyEntered += (body) => OnBodyEntered(bullet, body);
         GetTree().CurrentScene.AddChild(bullet);
@@ -60,7 +71,38 @@ public partial class Shooting : Node3D, IUpgradable
     {
         bullet.QueueFree();
         if (body is not Enemy enemy) return;
-        enemy.TakeDamages(Damages + _damagesBonus);
+        enemy.TakeDamages(Definition.BaseDamage + _damagesBonus);
+    }
+
+    private void StopAttacking(Player player)
+    {
+        _timer.Stop();
+    }
+
+    public bool TryApplyTemporaryUpgrade(TemporaryUpgradeDefinition upgrade)
+    {
+        if (upgrade == null || upgrade.Amount <= 0 || !float.IsFinite(upgrade.Amount)) return false;
+
+        switch (upgrade.Effect)
+        {
+            case TemporaryUpgradeEffect.ProjectileDamage:
+                uint damageIncrease = (uint)Mathf.FloorToInt(upgrade.Amount);
+                if (damageIncrease == 0) return false;
+
+                _damagesBonus = uint.MaxValue - _damagesBonus < damageIncrease
+                    ? uint.MaxValue
+                    : _damagesBonus + damageIncrease;
+                return true;
+            case TemporaryUpgradeEffect.ProjectileAttackSpeed:
+                _attackSpeedBonus += upgrade.Amount;
+                _timer.WaitTime = ProjectileWeaponTiming.GetCooldownSeconds(TotalAttackSpeed);
+                return true;
+            case TemporaryUpgradeEffect.ProjectileSpeed:
+                _bulletSpeedBonus += upgrade.Amount;
+                return true;
+            default:
+                return false;
+        }
     }
 
     public void Upgrade(PowerupType powerupType)
@@ -72,7 +114,7 @@ public partial class Shooting : Node3D, IUpgradable
                 break;
             case PowerupType.ShootingAttackSpeed:
                 _attackSpeedBonus += 0.1f;
-                _timer.WaitTime = 1f / TotalAttackSpeed;
+                _timer.WaitTime = ProjectileWeaponTiming.GetCooldownSeconds(TotalAttackSpeed);
                 break;
             case PowerupType.ShootingBulletSpeed:
                 _bulletSpeedBonus += 0.1f;

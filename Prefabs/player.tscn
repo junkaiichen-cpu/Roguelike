@@ -112,7 +112,6 @@ shape = SubResource("CapsuleShape3D_adgmg")
 autostart = true
 
 [node name="Shooting" parent="." instance=ExtResource("3_h4lb3")]
-BulletSpeed = 5.0
 
 [node name="SpiritWater" parent="." instance=ExtResource("4_cm2ek")]
 

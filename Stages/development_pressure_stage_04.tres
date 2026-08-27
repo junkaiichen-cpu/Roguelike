@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="StagePressureDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Run/StagePressureDefinition.cs" id="1_stage"]
+
+[resource]
+script = ExtResource("1_stage")
+DurationSeconds = 300.0
+SpawnRateMultiplier = 3.0
+PopulationMultiplier = 3.0

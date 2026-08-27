@@ -56,6 +56,7 @@ public partial class GameManager : Node
     private bool _isApplyingUpgrade;
     private uint _pendingLevelUpChoices;
     private UpgradeView _upgradeView;
+    private SpawnWarningView _spawnWarningView;
     private List<Choice> _currentVotes;
     private readonly List<TemporaryUpgradeDefinition> _temporaryUpgrades = new();
     private readonly Dictionary<string, uint> _temporaryUpgradeApplications = new();
@@ -83,6 +84,7 @@ public partial class GameManager : Node
 
         ResetRunState();
         _enemyManager = new(this, _stagePressureConfiguration.ToEnemySpawnConfiguration());
+        _enemyManager.OffscreenEnemySpawned += OnOffscreenEnemySpawned;
 
         ProcessMode = ProcessModeEnum.Always;
 
@@ -132,13 +134,6 @@ public partial class GameManager : Node
             _enemyManager.SpawnEnemy();
         }
     }
-
-    //public override void _PhysicsProcess(double delta)
-    //{
-    //    base._PhysicsProcess(delta);
-
-    //    _enemyManager._PhysicsProcess(delta);
-    //}
 
     private void LoadTemporaryUpgrades()
     {
@@ -194,6 +189,35 @@ public partial class GameManager : Node
         OnEnemyHit?.Invoke(enemy, damages);
     }
 
+    internal void ShowEnemySpawnWarning(Vector3 worldPosition)
+    {
+        if (_isRunOver || _spawnWarningView == null || Player == null) return;
+
+        Camera3D camera = Player.GetNodeOrNull<Camera3D>("Camera3D");
+        if (camera == null || !camera.IsInsideTree() || camera.GetViewport() == null) return;
+
+        Rect2 visibleRect = camera.GetViewport().GetVisibleRect();
+        Vector2 viewportCenter = visibleRect.Position + visibleRect.Size * 0.5f;
+        Vector2 screenDirection;
+
+        if (camera.IsPositionBehind(worldPosition))
+        {
+            Vector3 toEnemy = worldPosition - camera.GlobalPosition;
+            Transform3D cameraTransform = camera.GlobalTransform;
+            screenDirection = new Vector2(
+                cameraTransform.Basis.X.Dot(toEnemy),
+                -cameraTransform.Basis.Y.Dot(toEnemy));
+        }
+        else
+        {
+            screenDirection = camera.UnprojectPosition(worldPosition) - viewportCenter;
+        }
+
+        if (screenDirection.LengthSquared() <= 0.0001f) return;
+
+        _spawnWarningView.ShowWarning(screenDirection);
+    }
+
     internal void SpawnExperiencePickup(Vector3 position, uint experienceValue)
     {
         if (_isRunOver || experienceValue == 0) return;
@@ -207,6 +231,11 @@ public partial class GameManager : Node
         pickup.ExperienceValue = experienceValue;
         GetNode<Node3D>("/root/MainScene").AddChild(pickup);
         pickup.GlobalPosition = position;
+    }
+
+    private void OnOffscreenEnemySpawned(Vector3 worldPosition)
+    {
+        ShowEnemySpawnWarning(worldPosition);
     }
 
     private void OnPlayerExperienceChanged(Player player)
@@ -361,6 +390,12 @@ public partial class GameManager : Node
             {
                 _upgradeView.OnChoose += OnChoose;
             }
+        }
+
+        SpawnWarningView nextSpawnWarningView = GetNodeOrNull<SpawnWarningView>("/root/MainScene/HUD/SpawnWarning");
+        if (_spawnWarningView != nextSpawnWarningView)
+        {
+            _spawnWarningView = nextSpawnWarningView;
         }
 
         RunResultsView nextResultsView = GetNodeOrNull<RunResultsView>("/root/MainScene/HUD/RunResultsContainer");

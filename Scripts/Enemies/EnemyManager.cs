@@ -1,8 +1,11 @@
-﻿using Godot;
+using Godot;
+using System;
 using System.Collections.Generic;
 
 internal class EnemyManager
 {
+    private const float SpawnVisibilityMarginPixels = 48f;
+
     public float SpawnRate { get; private set; } = 1;
 
     public float SpawnDelay => 1f / SpawnRate;
@@ -12,6 +15,8 @@ internal class EnemyManager
     private readonly Dictionary<EnemyClass, PackedScene> _enemyPrefabs;
     private readonly List<Enemy> _enemies = new();
     public List<Enemy> Enemies => _enemies;
+
+    public event Action<Vector3> OffscreenEnemySpawned;
 
     // BONUSES
     private List<EnemyClass> _enemyClasses = new() { EnemyClass.Minion };
@@ -38,7 +43,7 @@ internal class EnemyManager
 
     internal Enemy SpawnEnemy(EnemyClass enemyClass)
     {
-        return SpawnEnemy(_enemyPrefabs[enemyClass], enemyClass.ToString());
+        return SpawnEnemy(_enemyPrefabs[enemyClass], enemyClass.ToString(), showSpawnWarning: true);
     }
 
     internal Enemy SpawnBoss(BossDefinition definition)
@@ -49,25 +54,31 @@ internal class EnemyManager
             return null;
         }
 
-        return SpawnEnemy(definition.EnemyScene, definition.Id);
+        return SpawnEnemy(definition.EnemyScene, definition.Id, showSpawnWarning: false);
     }
 
-    private Enemy SpawnEnemy(PackedScene enemyScene, string enemyName)
+    private Enemy SpawnEnemy(PackedScene enemyScene, string enemyName, bool showSpawnWarning)
     {
         var enemy = enemyScene.Instantiate<Enemy>();
         enemy.Name = enemyName;
         enemy.MaxHealth = GetSpawnHealth(enemy.MaxHealth);
         enemy.Damages += _damageBonus;
         enemy.MovementSpeed += _movespeedBonus;
-        enemy.Position = GetRandomPos();
+        enemy.Position = GetRandomPos(out bool warningRequired);
         enemy.Died += OnEnemyDied;
         _gameManager.GetNode("/root/MainScene").AddChild(enemy);
         _enemies.Add(enemy);
         enemy.Connect(Enemy.SignalName.OnEnemyHit, Callable.From<Enemy, int>(_gameManager.EnemyHit));
+
+        if (showSpawnWarning && warningRequired)
+        {
+            OffscreenEnemySpawned?.Invoke(enemy.GlobalPosition);
+        }
+
         return enemy;
     }
 
-    internal Enemy SpawnBoss() => SpawnEnemy(EnemyClass.Boss);
+    internal Enemy SpawnBoss() => SpawnEnemy(_enemyPrefabs[EnemyClass.Boss], EnemyClass.Boss.ToString(), showSpawnWarning: false);
 
     internal void ClearEnemies()
     {
@@ -89,9 +100,14 @@ internal class EnemyManager
         _gameManager.SpawnExperiencePickup(enemy.GlobalPosition, enemy.ExperienceReward);
     }
 
-    private Vector3 GetRandomPos()
+    private Vector3 GetRandomPos(out bool warningRequired)
     {
+        warningRequired = false;
+
         Vector3 playerPosition = _gameManager.Player.GlobalPosition;
+        Camera3D camera = _gameManager.Player.GetNodeOrNull<Camera3D>("Camera3D");
+        bool canValidateVisibility = camera != null && camera.IsInsideTree() && camera.GetViewport() != null;
+
         for (int attempt = 0; attempt < _spawnConfiguration.MaximumAttempts; attempt++)
         {
             float angle = GD.Randf() * Mathf.Tau;
@@ -104,18 +120,42 @@ internal class EnemyManager
                 0,
                 Mathf.Sin(angle) * distance);
 
-            if (EnemySpawnPlacement.IsWithinSpawnBand(
+            if (!EnemySpawnPlacement.IsWithinSpawnBand(
                     ToNumericsVector3(playerPosition),
                     ToNumericsVector3(candidate),
                     _spawnConfiguration))
             {
+                continue;
+            }
+
+            if (!canValidateVisibility || !IsCameraVisible(camera, candidate))
+            {
+                warningRequired = canValidateVisibility;
                 return candidate;
             }
         }
 
-        return ToGodotVector3(EnemySpawnPlacement.GetFallbackPosition(
+        Vector3 fallback = ToGodotVector3(EnemySpawnPlacement.GetFallbackPosition(
             ToNumericsVector3(playerPosition),
             _spawnConfiguration));
+        warningRequired = canValidateVisibility && !IsCameraVisible(camera, fallback);
+        return fallback;
+    }
+
+    private static bool IsCameraVisible(Camera3D camera, Vector3 worldPosition)
+    {
+        if (camera == null || !camera.IsInsideTree() || camera.GetViewport() == null)
+        {
+            return false;
+        }
+
+        if (camera.IsPositionBehind(worldPosition))
+        {
+            return false;
+        }
+
+        Rect2 visibleRect = camera.GetViewport().GetVisibleRect().Grow(SpawnVisibilityMarginPixels);
+        return visibleRect.HasPoint(camera.UnprojectPosition(worldPosition));
     }
 
     private static System.Numerics.Vector3 ToNumericsVector3(Vector3 vector) => new(vector.X, vector.Y, vector.Z);

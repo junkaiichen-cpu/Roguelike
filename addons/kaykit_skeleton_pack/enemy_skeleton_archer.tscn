@@ -562,7 +562,7 @@ shadow_mesh = SubResource("ArrayMesh_n8cen")
 
 [node name="EnemySkeletonArcher" instance=ExtResource("1_rh88w")]
 
-[node name="Skeleton3D" parent="RootNode/KayKit Animated Character" index="0"]
+[node name="Skeleton3D" parent="KayKit Animated Character" index="0"]
 bones/0/rotation = Quaternion(-0.0139887, -3.71901e-26, 2.65831e-24, 0.999902)
 bones/1/rotation = Quaternion(0.0647296, -1.99955e-19, -9.88961e-18, 0.997903)
 bones/2/rotation = Quaternion(0.680019, 0.193841, -0.680019, 0.193841)
@@ -570,75 +570,75 @@ bones/3/rotation = Quaternion(-0.606617, 0.606617, -0.36334, -0.36334)
 bones/4/rotation = Quaternion(0.698384, -0.301229, -0.645772, -0.0670758)
 bones/5/rotation = Quaternion(0.300506, -0.376591, 0.679877, 0.55285)
 
-[node name="PrototypePete" parent="RootNode/KayKit Animated Character/Skeleton3D" index="0"]
+[node name="PrototypePete" parent="KayKit Animated Character/Skeleton3D" index="0"]
 visible = false
 
-[node name="Body" type="BoneAttachment3D" parent="RootNode/KayKit Animated Character/Skeleton3D" index="1"]
+[node name="Body" type="BoneAttachment3D" parent="KayKit Animated Character/Skeleton3D" index="1"]
 transform = Transform3D(1, -5.31507e-24, -1.48746e-25, 5.31715e-24, 0.999609, 0.0279747, -6.16298e-33, -0.0279747, 0.999609, 0, 0, 0)
 bone_name = "Body"
 bone_idx = 0
 
-[node name="character_skeleton_archer_body" type="MeshInstance3D" parent="RootNode/KayKit Animated Character/Skeleton3D/Body" index="0"]
+[node name="character_skeleton_archer_body" type="MeshInstance3D" parent="KayKit Animated Character/Skeleton3D/Body" index="0"]
 transform = Transform3D(0.01, -1.34359e-09, 5.96047e-09, 1.34359e-09, 0.01, -7.15256e-09, -5.96047e-09, 7.15256e-09, 0.01, 0, 0, 0)
 mesh = SubResource("ArrayMesh_yndml")
 skeleton = NodePath("")
 
-[node name="Head" type="BoneAttachment3D" parent="RootNode/KayKit Animated Character/Skeleton3D" index="2"]
+[node name="Head" type="BoneAttachment3D" parent="KayKit Animated Character/Skeleton3D" index="2"]
 transform = Transform3D(1, 1.97119e-17, -1.67937e-18, -1.97805e-17, 0.994846, -0.101397, -3.28005e-19, 0.101397, 0.994846, -4.16185e-11, 0.00711319, -0.000199068)
 bone_name = "Head"
 bone_idx = 1
 
-[node name="character_skeleton_archer_head" type="MeshInstance3D" parent="RootNode/KayKit Animated Character/Skeleton3D/Head" index="0"]
+[node name="character_skeleton_archer_head" type="MeshInstance3D" parent="KayKit Animated Character/Skeleton3D/Head" index="0"]
 transform = Transform3D(0.01, -1.34359e-09, 5.96047e-09, 1.34359e-09, 0.01, -7.15256e-09, -5.96047e-09, 7.15256e-09, 0.01, -9.04989e-10, -7.06147e-05, 5.03115e-09)
 mesh = SubResource("ArrayMesh_3s0dc")
 skeleton = NodePath("")
 blend_shapes/Angry = 0.0
 blend_shapes/Happy = 0.0
 
-[node name="character_skeleton_archer_eyes" type="MeshInstance3D" parent="RootNode/KayKit Animated Character/Skeleton3D/Head/character_skeleton_archer_head" index="0"]
+[node name="character_skeleton_archer_eyes" type="MeshInstance3D" parent="KayKit Animated Character/Skeleton3D/Head/character_skeleton_archer_head" index="0"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.62939e-06, 0.424515, 0.258715)
 mesh = SubResource("ArrayMesh_5r35e")
 skeleton = NodePath("")
 
-[node name="character_skeleton_archer_hood" type="MeshInstance3D" parent="RootNode/KayKit Animated Character/Skeleton3D/Head/character_skeleton_archer_head" index="1"]
+[node name="character_skeleton_archer_hood" type="MeshInstance3D" parent="KayKit Animated Character/Skeleton3D/Head/character_skeleton_archer_head" index="1"]
 mesh = SubResource("ArrayMesh_47gdb")
 skeleton = NodePath("")
 
-[node name="character_skeleton_archer_jaw" type="MeshInstance3D" parent="RootNode/KayKit Animated Character/Skeleton3D/Head/character_skeleton_archer_head" index="2"]
+[node name="character_skeleton_archer_jaw" type="MeshInstance3D" parent="KayKit Animated Character/Skeleton3D/Head/character_skeleton_archer_head" index="2"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.126701, 0.0399227)
 mesh = SubResource("ArrayMesh_cuuum")
 skeleton = NodePath("")
 
-[node name="character_skeleton_archer_mask" type="MeshInstance3D" parent="RootNode/KayKit Animated Character/Skeleton3D/Head/character_skeleton_archer_head" index="3"]
+[node name="character_skeleton_archer_mask" type="MeshInstance3D" parent="KayKit Animated Character/Skeleton3D/Head/character_skeleton_archer_head" index="3"]
 mesh = SubResource("ArrayMesh_murbw")
 skeleton = NodePath("")
 
-[node name="ArmLeft" type="BoneAttachment3D" parent="RootNode/KayKit Animated Character/Skeleton3D" index="3"]
+[node name="ArmLeft" type="BoneAttachment3D" parent="KayKit Animated Character/Skeleton3D" index="3"]
 transform = Transform3D(1.78814e-07, 0.527263, -0.849702, -0.0279748, -0.84937, -0.527056, -0.99961, 0.0237703, 0.0147498, 0.0014, 0.00691327, -0.000193473)
 bone_name = "armLeft"
 bone_idx = 2
 
-[node name="character_skeleton_archer_armLeft" type="MeshInstance3D" parent="RootNode/KayKit Animated Character/Skeleton3D/ArmLeft" index="0"]
+[node name="character_skeleton_archer_armLeft" type="MeshInstance3D" parent="KayKit Animated Character/Skeleton3D/ArmLeft" index="0"]
 transform = Transform3D(8.41405e-09, -6.68424e-09, -0.00999999, 0.00471935, -0.00881633, 9.68148e-09, -0.00881633, -0.00471935, -2.93039e-09, -3.23382e-09, 0.000813979, -0.00029075)
 mesh = SubResource("ArrayMesh_2hlib")
 skeleton = NodePath("")
 
-[node name="ArmRight" type="BoneAttachment3D" parent="RootNode/KayKit Animated Character/Skeleton3D" index="4"]
+[node name="ArmRight" type="BoneAttachment3D" parent="KayKit Animated Character/Skeleton3D" index="4"]
 transform = Transform3D(-0.0155205, -0.507379, -0.861583, -0.360349, -0.800944, 0.478161, -0.932689, 0.317892, -0.170403, -0.0014, 0.00691327, -0.000193473)
 bone_name = "armRight"
 bone_idx = 4
 
-[node name="character_skeleton_archer_armRight" type="MeshInstance3D" parent="RootNode/KayKit Animated Character/Skeleton3D/ArmRight" index="0"]
+[node name="character_skeleton_archer_armRight" type="MeshInstance3D" parent="KayKit Animated Character/Skeleton3D/ArmRight" index="0"]
 transform = Transform3D(8.62503e-09, -7.22675e-09, -0.00999999, -0.00471936, -0.00881633, 2.36778e-09, -0.00881633, 0.00471936, -1.07325e-08, -5.91412e-09, 0.000813981, 0.000290751)
 mesh = SubResource("ArrayMesh_yvci2")
 skeleton = NodePath("")
 
-[node name="HandSlotLeft" type="BoneAttachment3D" parent="RootNode/KayKit Animated Character/Skeleton3D" index="5"]
+[node name="HandSlotLeft" type="BoneAttachment3D" parent="KayKit Animated Character/Skeleton3D" index="5"]
 transform = Transform3D(-0.99796, -1.91023e-07, -0.0638469, -0.0638219, 0.0279749, 0.997569, 0.00178583, 0.99961, -0.0279178, 0.00430481, 0.0022339, -6.25166e-05)
 bone_name = "handSlotLeft"
 bone_idx = 3
 
-[node name="HandSlotRight" type="BoneAttachment3D" parent="RootNode/KayKit Animated Character/Skeleton3D" index="6"]
+[node name="HandSlotRight" type="BoneAttachment3D" parent="KayKit Animated Character/Skeleton3D" index="6"]
 transform = Transform3D(-0.974164, 0.223405, -0.033072, 0.0486596, 0.350632, 0.935248, 0.220535, 0.909477, -0.352444, -0.00419527, 0.00250069, 0.00155787)
 bone_name = "handSlotRight"
 bone_idx = 5

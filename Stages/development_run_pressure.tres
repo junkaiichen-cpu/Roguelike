@@ -10,9 +10,15 @@
 [resource]
 script = ExtResource("1_configuration")
 BaseSpawnIntervalSeconds = 1.0
-BaseMaxActiveEnemies = 20
+BaseMaxActiveEnemies = 28
 EnemySpawnMinimumDistance = 30.0
 EnemySpawnMaximumDistance = 36.0
 EnemySpawnMaximumAttempts = 8
+NormalEnemySpawnMinimumDistance = 34.0
+NormalEnemySpawnMaximumAttempts = 24
+PlayableMinimumX = -50.0
+PlayableMaximumX = 50.0
+PlayableMinimumZ = -50.0
+PlayableMaximumZ = 50.0
 Stages = Array[Resource]([ExtResource("2_stage_01"), ExtResource("3_stage_02"), ExtResource("4_stage_03"), ExtResource("5_stage_04")])
 CompletionBoss = ExtResource("6_boss")

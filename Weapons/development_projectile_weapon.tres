@@ -5,7 +5,10 @@
 
 [resource]
 script = ExtResource("1_definition")
-BaseDamage = 5
-AttacksPerSecond = 1.0
+BaseDamage = 6
+AttacksPerSecond = 1.25
 ProjectileSpeed = 5.0
+ProjectileCount = 1
+SpreadDegrees = 14.0
+ProjectileSizeMultiplier = 1.0
 ProjectileScene = ExtResource("2_projectile")

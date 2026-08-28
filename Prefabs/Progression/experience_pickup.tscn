@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://Scripts/Progression/ExperiencePickup.cs" id="1_pickup"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_pickup"]
-radius = 0.5
+radius = 1.0
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pickup"]
 albedo_color = Color(0.2, 0.75, 1, 1)
@@ -16,15 +16,17 @@ radius = 0.18
 height = 0.36
 
 [node name="ExperiencePickup" type="Area3D"]
+groups = ["experience_pickups"]
 collision_layer = 0
 collision_mask = 1
 monitorable = false
 script = ExtResource("1_pickup")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-position = Vector3(0, 0.5, 0)
+position = Vector3(0, 0.2, 0)
 shape = SubResource("SphereShape3D_pickup")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-position = Vector3(0, 0.5, 0)
+position = Vector3(0, 0.18, 0)
 mesh = SubResource("SphereMesh_pickup")
+cast_shadow = 0

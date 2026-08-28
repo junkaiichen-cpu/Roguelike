@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="TemporaryUpgradeDefinition"]
+
+[ext_resource type="Script" path="res://Scripts/Progression/TemporaryUpgradeDefinition.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "unlock_lifesteal"
+DisplayName = "Unlock Lifesteal"
+Description = "Activate the Lifesteal weapon."
+Effect = 40
+Amount = 1.0
+MaxApplications = 1

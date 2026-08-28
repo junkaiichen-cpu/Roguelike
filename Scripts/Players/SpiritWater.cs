@@ -1,7 +1,7 @@
 using Godot;
 using System.Collections.Generic;
 
-public partial class SpiritWater : Node3D, IUpgradable
+public partial class SpiritWater : Node3D, IUpgradable, ITemporaryUpgradeReceiver
 {
     [Export]
     public uint Damages = 1;
@@ -34,6 +34,9 @@ public partial class SpiritWater : Node3D, IUpgradable
 
     private readonly HashSet<Enemy> _enemies = new();
     private GameManager _gameManager;
+    private bool _unlocked;
+
+    public bool IsUnlocked => _unlocked;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -41,16 +44,24 @@ public partial class SpiritWater : Node3D, IUpgradable
         _gameManager = GetNode<GameManager>("/root/GameManager");
         _projectileCooldown = GetNode<Timer>("ProjectileCooldown");
         _projectileCooldown.WaitTime = TotalCooldown;
-        _projectileCooldown.Start();
         _projectileCooldown.Timeout += OnAttackReady;
 
         _damageCooldown = GetNode<Timer>("DamageCooldown");
-        _damageCooldown.Start();
         _damageCooldown.Timeout += OnDamageReady;
+    }
+
+    public bool Unlock()
+    {
+        if (_unlocked) return false;
+        _unlocked = true;
+        _projectileCooldown.Start();
+        _damageCooldown.Start();
+        return true;
     }
 
     private void OnAttackReady()
     {
+        if (!_unlocked) return;
         _projectileCooldown.Start();
         var projectile = ProjectilePrefab.Instantiate<Area3D>();
         projectile.BodyEntered += OnBodyEntered;
@@ -81,6 +92,7 @@ public partial class SpiritWater : Node3D, IUpgradable
 
     private void OnDamageReady()
     {
+        if (!_unlocked) return;
         _damageCooldown.Start();
         _enemies.RemoveWhere(enemy => !GodotObject.IsInstanceValid(enemy) || enemy.IsDead);
         foreach (var enemy in _enemies)
@@ -95,6 +107,29 @@ public partial class SpiritWater : Node3D, IUpgradable
             case PowerupType.SpiritWaterDuration: _durationBonus += 0.2f; break;
             case PowerupType.SpiritWaterCooldown: _cooldownBonus += 0.25f; break;
             default: break;
+        }
+    }
+
+    public bool TryApplyTemporaryUpgrade(TemporaryUpgradeDefinition upgrade)
+    {
+        if (upgrade == null || upgrade.Amount <= 0 || !float.IsFinite(upgrade.Amount)) return false;
+        if (upgrade.Effect == TemporaryUpgradeEffect.UnlockSpiritWater) return Unlock();
+        if (!_unlocked) return false;
+
+        switch (upgrade.Effect)
+        {
+            case TemporaryUpgradeEffect.SpiritWaterDamage:
+                _damagesBonus += (uint)Mathf.Max(1, Mathf.FloorToInt(upgrade.Amount));
+                return true;
+            case TemporaryUpgradeEffect.SpiritWaterDuration:
+                _durationBonus += upgrade.Amount;
+                return true;
+            case TemporaryUpgradeEffect.SpiritWaterCooldown:
+                _cooldownBonus += upgrade.Amount;
+                _projectileCooldown.WaitTime = TotalCooldown;
+                return true;
+            default:
+                return false;
         }
     }
 }

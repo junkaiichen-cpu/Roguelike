@@ -67,6 +67,65 @@ public sealed class EnemySpawnPlacementTests
             Configuration));
     }
 
+    [Fact]
+    public void StoresTheStricterNormalEnemySpawnProfile()
+    {
+        var configuration = new EnemySpawnConfiguration(30f, 36f, 8, 34f, 24);
+
+        Assert.Equal(34f, configuration.NormalMinimumDistance);
+        Assert.Equal(24, configuration.NormalMaximumAttempts);
+    }
+
+    [Fact]
+    public void NormalFallbackRespectsTheStricterMinimumDistance()
+    {
+        Vector3 fallback = EnemySpawnPlacement.GetFallbackPosition(
+            Vector3.Zero,
+            Configuration,
+            Configuration.NormalMinimumDistance);
+
+        Assert.True(EnemySpawnPlacement.IsWithinSpawnBand(
+            Vector3.Zero,
+            fallback,
+            Configuration,
+            Configuration.NormalMinimumDistance));
+        Assert.True(Vector3.Distance(Vector3.Zero, fallback) >= Configuration.NormalMinimumDistance);
+    }
+
+    [Fact]
+    public void SpawnPlacementRejectsCandidatesOutsidePlayableBounds()
+    {
+        var bounds = new PlayableBounds(-10f, 10f, -10f, 10f);
+
+        Assert.False(EnemySpawnPlacement.IsWithinSpawnBand(
+            Vector3.Zero,
+            new Vector3(12f, 0, 0),
+            Configuration,
+            Configuration.MinimumDistance,
+            bounds));
+    }
+
+    [Fact]
+    public void FallbackRemainsInsidePlayableBounds()
+    {
+        var configuration = new EnemySpawnConfiguration(3f, 8f, 8, 3f, 8, -10f, 10f, -10f, 10f);
+        Vector3 playerPosition = new(6f, 0, 0);
+
+        Vector3 fallback = EnemySpawnPlacement.GetFallbackPosition(
+            playerPosition,
+            configuration,
+            configuration.MinimumDistance,
+            configuration.Bounds);
+
+        Assert.True(configuration.Bounds.Contains(fallback));
+        Assert.True(EnemySpawnPlacement.IsWithinSpawnBand(
+            playerPosition,
+            fallback,
+            configuration,
+            configuration.MinimumDistance,
+            configuration.Bounds));
+    }
+
     [Theory]
     [InlineData(0f, 36f, 8)]
     [InlineData(30f, 29f, 8)]

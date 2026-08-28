@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="TemporaryUpgradeDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Progression/TemporaryUpgradeDefinition.cs" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+Id = "development_lightning_count"
+DisplayName = "Lightning Count"
+Description = "Strike one additional enemy with each Lightning attack."
+Effect = 17
+Amount = 1.0
+MaxApplications = 3

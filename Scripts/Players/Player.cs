@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public partial class Player : CharacterBody3D
+public partial class Player : CharacterBody3D, ITemporaryUpgradeReceiver
 {
     public const uint DefaultMaxHealth = 200;
 
@@ -30,6 +30,59 @@ public partial class Player : CharacterBody3D
     private Node3D _visual;
     private ProgressBar _playerLifebar;
     private AnimationTree _animationTree;
+    private ColorRect _damageFlash;
+    private float _moveSpeedMultiplier = 1f;
+    private float _pickupRadiusMultiplier = 1f;
+    private float _experienceGainMultiplier = 1f;
+
+    public float TotalMoveSpeed => Speed * _moveSpeedMultiplier;
+
+    public float TotalPickupRadius => 4.5f * _pickupRadiusMultiplier;
+
+    public bool ActivateWeapon(WeaponPickupType weaponType)
+    {
+        bool activated = weaponType switch
+        {
+            WeaponPickupType.Orb => GetNodeOrNull<FloatingSphereAttack>("FloatingSphere")?.Unlock() ?? false,
+            WeaponPickupType.Fire => GetNodeOrNull<GroundFireAttack>("GroundFire")?.Unlock() ?? false,
+            WeaponPickupType.SpiritWater => ActivateSpiritWater(),
+            WeaponPickupType.Lifesteal => ActivateLifesteal(),
+            WeaponPickupType.Cross => ActivateUpgradeWeapon< CrossAttack>("CrossAttack", TemporaryUpgradeEffect.UnlockCross),
+            WeaponPickupType.Lightning => ActivateUpgradeWeapon<LightningAttack>("LightningAttack", TemporaryUpgradeEffect.UnlockLightning),
+            WeaponPickupType.Bible => ActivateUpgradeWeapon<BibleAttack>("BibleAttack", TemporaryUpgradeEffect.UnlockBible),
+            _ => false,
+        };
+        if (activated) BuildChanged?.Invoke(this);
+        return activated;
+    }
+
+    private bool ActivateSpiritWater()
+    {
+        bool activated = GetNodeOrNull<SpiritWater>("SpiritWater")?.Unlock() ?? false;
+        if (activated) BuildChanged?.Invoke(this);
+        return activated;
+    }
+
+    private bool ActivateLifesteal()
+    {
+        bool activated = GetNodeOrNull<LifestealAttack>("Lifesteal")?.Unlock() ?? false;
+        if (activated) BuildChanged?.Invoke(this);
+        return activated;
+    }
+
+    private bool ActivateUpgradeWeapon<TWeapon>(string nodePath, TemporaryUpgradeEffect effect)
+        where TWeapon : Node, ITemporaryUpgradeReceiver
+    {
+        TWeapon weapon = GetNodeOrNull<TWeapon>(nodePath);
+        bool activated = weapon?.TryApplyTemporaryUpgrade(new TemporaryUpgradeDefinition
+        {
+            Id = $"pickup_{nodePath}",
+            Effect = effect,
+            Amount = 1,
+        }) ?? false;
+        if (activated) BuildChanged?.Invoke(this);
+        return activated;
+    }
 
     public uint CurrentHealth => _runtimeState.CurrentHealth;
 
@@ -45,7 +98,11 @@ public partial class Player : CharacterBody3D
 
     public event Action<Player> ExperienceChanged;
 
+    public event Action<Player> HealthChanged;
+
     public event Action<Player, uint> LeveledUp;
+
+    public event Action<Player> BuildChanged;
 
     public override void _Ready()
     {
@@ -66,6 +123,7 @@ public partial class Player : CharacterBody3D
         _attackTimer = GetNode<Timer>("AttackCooldown");
         _visual = GetNode<Node3D>("Visual");
         _animationTree = GetNode<AnimationTree>("AnimationTree");
+        _damageFlash = GetTree().CurrentScene.GetNodeOrNull<ColorRect>("HUD/PlayerDamageFlash");
     }
 
     public override void _PhysicsProcess(double delta)
@@ -92,13 +150,13 @@ public partial class Player : CharacterBody3D
         Vector3 direction = (Transform.Basis * new Vector3(inputDir.X, 0, inputDir.Y)).Normalized();
         if (direction != Vector3.Zero)
         {
-            velocity.X = direction.X * Speed;
-            velocity.Z = direction.Z * Speed;
+            velocity.X = direction.X * TotalMoveSpeed;
+            velocity.Z = direction.Z * TotalMoveSpeed;
         }
         else
         {
-            velocity.X = Mathf.MoveToward(Velocity.X, 0, Speed);
-            velocity.Z = Mathf.MoveToward(Velocity.Z, 0, Speed);
+            velocity.X = Mathf.MoveToward(Velocity.X, 0, TotalMoveSpeed);
+            velocity.Z = Mathf.MoveToward(Velocity.Z, 0, TotalMoveSpeed);
         }
 
         Velocity = velocity;
@@ -131,8 +189,13 @@ public partial class Player : CharacterBody3D
     {
         if (IsDead) return;
 
-        _runtimeState.ApplyDamage(damages);
+        uint appliedDamage = _runtimeState.ApplyDamage(damages);
         UpdateHealthBar();
+        if (appliedDamage > 0) HealthChanged?.Invoke(this);
+        if (appliedDamage > 0)
+        {
+            ShowDamageFeedback();
+        }
 
         if (IsDead)
         {
@@ -144,13 +207,18 @@ public partial class Player : CharacterBody3D
     {
         _runtimeState.RestoreHealth(health);
         UpdateHealthBar();
+        HealthChanged?.Invoke(this);
     }
 
     public bool CollectExperience(uint experience)
     {
         if (IsDead || experience == 0) return false;
 
-        PlayerProgressionResult result = _progressionState.AddExperience(experience);
+        uint adjustedExperience = (uint)Mathf.Clamp(
+            Mathf.RoundToInt(experience * _experienceGainMultiplier),
+            1,
+            int.MaxValue);
+        PlayerProgressionResult result = _progressionState.AddExperience(adjustedExperience);
         ExperienceChanged?.Invoke(this);
 
         if (result.HasLeveledUp)
@@ -173,5 +241,34 @@ public partial class Player : CharacterBody3D
     private void UpdateHealthBar()
     {
         _playerLifebar.Value = CurrentHealth;
+    }
+
+    private void ShowDamageFeedback()
+    {
+        if (_damageFlash == null) return;
+
+        _damageFlash.Color = new Color(0.9f, 0.08f, 0.04f, 0.3f);
+        Tween flashTween = CreateTween();
+        flashTween.TweenProperty(_damageFlash, "color", new Color(0.9f, 0.08f, 0.04f, 0f), 0.18f);
+    }
+
+    public bool TryApplyTemporaryUpgrade(TemporaryUpgradeDefinition upgrade)
+    {
+        if (upgrade == null || upgrade.Amount <= 0 || !float.IsFinite(upgrade.Amount)) return false;
+
+        switch (upgrade.Effect)
+        {
+            case TemporaryUpgradeEffect.PickupRadiusPercent:
+                _pickupRadiusMultiplier *= 1f + upgrade.Amount / 100f;
+                return true;
+            case TemporaryUpgradeEffect.ExperienceGainPercent:
+                _experienceGainMultiplier *= 1f + upgrade.Amount / 100f;
+                return true;
+            case TemporaryUpgradeEffect.MoveSpeedPercent:
+                _moveSpeedMultiplier *= 1f + upgrade.Amount / 100f;
+                return true;
+            default:
+                return false;
+        }
     }
 }

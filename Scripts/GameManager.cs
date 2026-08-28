@@ -56,13 +56,14 @@ public partial class GameManager : Node
     private bool _isApplyingUpgrade;
     private uint _pendingLevelUpChoices;
     private UpgradeView _upgradeView;
-    private SpawnWarningView _spawnWarningView;
     private List<Choice> _currentVotes;
     private readonly List<TemporaryUpgradeDefinition> _temporaryUpgrades = new();
     private readonly Dictionary<string, uint> _temporaryUpgradeApplications = new();
     private PackedScene _experiencePickupPrefab;
+    private PackedScene _faithSurgePickupPrefab;
 
     private Label _gameTimeLabel;
+    private CombatHud _combatHud;
     private RunResultsView _runResultsView;
     public double GameTime => _runPressureState?.ElapsedSeconds ?? 0;
 
@@ -84,13 +85,13 @@ public partial class GameManager : Node
 
         ResetRunState();
         _enemyManager = new(this, _stagePressureConfiguration.ToEnemySpawnConfiguration());
-        _enemyManager.OffscreenEnemySpawned += OnOffscreenEnemySpawned;
 
         ProcessMode = ProcessModeEnum.Always;
 
         BindHud();
 
         _experiencePickupPrefab = GD.Load<PackedScene>("res://Prefabs/Progression/experience_pickup.tscn");
+        _faithSurgePickupPrefab = GD.Load<PackedScene>("res://Prefabs/Progression/faith_surge_pickup.tscn");
         LoadTemporaryUpgrades();
         UpdatePlayerProgressDisplay();
         StartRun();
@@ -131,9 +132,33 @@ public partial class GameManager : Node
 
         if (_enemyManager.Enemies.Count < spawnPressure.MaxActiveEnemies)
         {
-            _enemyManager.SpawnEnemy();
+            float eliteChance = GameTime switch
+            {
+                < 60 => 0f,
+                < 180 => 0.1f,
+                < 270 => 0.18f,
+                _ => 0.25f,
+            };
+            if (GD.Randf() < eliteChance)
+            {
+                _enemyManager.SpawnElite();
+            }
+
+            int burstSize = GameTime switch
+            {
+                < 60 => 1,
+                < 180 => 2,
+                < 270 => 3,
+                _ => 4,
+            };
+            int availableSlots = Mathf.Max(0, spawnPressure.MaxActiveEnemies - _enemyManager.Enemies.Count);
+            for (int index = 0; index < Mathf.Min(burstSize, availableSlots); index++)
+            {
+                _enemyManager.SpawnEnemy();
+            }
         }
     }
+
 
     private void LoadTemporaryUpgrades()
     {
@@ -189,35 +214,6 @@ public partial class GameManager : Node
         OnEnemyHit?.Invoke(enemy, damages);
     }
 
-    internal void ShowEnemySpawnWarning(Vector3 worldPosition)
-    {
-        if (_isRunOver || _spawnWarningView == null || Player == null) return;
-
-        Camera3D camera = Player.GetNodeOrNull<Camera3D>("Camera3D");
-        if (camera == null || !camera.IsInsideTree() || camera.GetViewport() == null) return;
-
-        Rect2 visibleRect = camera.GetViewport().GetVisibleRect();
-        Vector2 viewportCenter = visibleRect.Position + visibleRect.Size * 0.5f;
-        Vector2 screenDirection;
-
-        if (camera.IsPositionBehind(worldPosition))
-        {
-            Vector3 toEnemy = worldPosition - camera.GlobalPosition;
-            Transform3D cameraTransform = camera.GlobalTransform;
-            screenDirection = new Vector2(
-                cameraTransform.Basis.X.Dot(toEnemy),
-                -cameraTransform.Basis.Y.Dot(toEnemy));
-        }
-        else
-        {
-            screenDirection = camera.UnprojectPosition(worldPosition) - viewportCenter;
-        }
-
-        if (screenDirection.LengthSquared() <= 0.0001f) return;
-
-        _spawnWarningView.ShowWarning(screenDirection);
-    }
-
     internal void SpawnExperiencePickup(Vector3 position, uint experienceValue)
     {
         if (_isRunOver || experienceValue == 0) return;
@@ -227,15 +223,43 @@ public partial class GameManager : Node
             return;
         }
 
+        foreach (Node node in GetTree().GetNodesInGroup("experience_pickups"))
+        {
+            if (node is not ExperiencePickup existingPickup
+                || !GodotObject.IsInstanceValid(existingPickup)
+                || existingPickup.GlobalPosition.DistanceTo(position) > 2f)
+            {
+                continue;
+            }
+
+            existingPickup.AddExperience(experienceValue);
+            return;
+        }
+
         ExperiencePickup pickup = _experiencePickupPrefab.Instantiate<ExperiencePickup>();
         pickup.ExperienceValue = experienceValue;
+        pickup.PickupRadius = Player?.TotalPickupRadius ?? pickup.PickupRadius;
         GetNode<Node3D>("/root/MainScene").AddChild(pickup);
         pickup.GlobalPosition = position;
     }
 
-    private void OnOffscreenEnemySpawned(Vector3 worldPosition)
+    internal void SpawnFaithSurge(Vector3 position)
     {
-        ShowEnemySpawnWarning(worldPosition);
+        if (_isRunOver || _faithSurgePickupPrefab == null) return;
+        FaithSurgePickup pickup = _faithSurgePickupPrefab.Instantiate<FaithSurgePickup>();
+        GetNode<Node3D>("/root/MainScene").AddChild(pickup);
+        pickup.GlobalPosition = position + new Vector3(0, 0.8f, 0);
+    }
+
+    internal void ActivateExperienceVacuum(Player player)
+    {
+        foreach (Node node in GetTree().GetNodesInGroup("experience_pickups"))
+        {
+            if (node is ExperiencePickup pickup && GodotObject.IsInstanceValid(pickup))
+            {
+                pickup.StartVacuum(player);
+            }
+        }
     }
 
     private void OnPlayerExperienceChanged(Player player)
@@ -258,6 +282,7 @@ public partial class GameManager : Node
     {
         List<TemporaryUpgradeDefinition> eligibleUpgrades = _temporaryUpgrades
             .Where(upgrade => _temporaryUpgradeApplications[upgrade.Id] < upgrade.MaxApplications)
+            .Where(IsUpgradeAvailable)
             .OrderBy(_ => GD.Randf())
             .Take(UpgradeChoiceCount)
             .ToList();
@@ -281,6 +306,99 @@ public partial class GameManager : Node
 
         _currentVotes = eligibleUpgrades.Select(upgrade => new Choice(upgrade)).ToList();
         _upgradeView.SetChoices(_currentVotes);
+    }
+
+    private bool IsUpgradeAvailable(TemporaryUpgradeDefinition upgrade)
+    {
+        if (upgrade.Effect is not (TemporaryUpgradeEffect.CrossDamage
+            or TemporaryUpgradeEffect.CrossSize
+            or TemporaryUpgradeEffect.CrossCooldown
+            or TemporaryUpgradeEffect.LightningDamage
+            or TemporaryUpgradeEffect.LightningCount
+            or TemporaryUpgradeEffect.LightningFrequency
+            or TemporaryUpgradeEffect.LightningChainCount
+            or TemporaryUpgradeEffect.BibleDamage
+            or TemporaryUpgradeEffect.BibleCount
+            or TemporaryUpgradeEffect.BibleOrbitSpeed
+            or TemporaryUpgradeEffect.BibleRadius
+            or TemporaryUpgradeEffect.OrbDamage
+            or TemporaryUpgradeEffect.OrbCount
+            or TemporaryUpgradeEffect.OrbSpeed
+            or TemporaryUpgradeEffect.FireDamage
+            or TemporaryUpgradeEffect.FireArea
+            or TemporaryUpgradeEffect.FireDuration
+            or TemporaryUpgradeEffect.FireFrequency
+            or TemporaryUpgradeEffect.SpiritWaterDamage
+            or TemporaryUpgradeEffect.SpiritWaterDuration
+            or TemporaryUpgradeEffect.SpiritWaterCooldown
+            or TemporaryUpgradeEffect.LifestealDamage
+            or TemporaryUpgradeEffect.LifestealCooldown))
+        {
+            return true;
+        }
+
+        if (upgrade.Effect is TemporaryUpgradeEffect.CrossDamage
+            or TemporaryUpgradeEffect.CrossSize
+            or TemporaryUpgradeEffect.CrossCooldown)
+        {
+            CrossAttack crossAttack = Player.GetNodeOrNull<CrossAttack>("CrossAttack");
+            return crossAttack != null && crossAttack.IsUnlocked;
+        }
+
+        if (upgrade.Effect is TemporaryUpgradeEffect.LightningDamage
+            or TemporaryUpgradeEffect.LightningCount
+            or TemporaryUpgradeEffect.LightningFrequency
+            or TemporaryUpgradeEffect.LightningChainCount)
+        {
+            LightningAttack lightningAttack = Player.GetNodeOrNull<LightningAttack>("LightningAttack");
+            return lightningAttack != null && lightningAttack.IsUnlocked;
+        }
+
+        BibleAttack bibleAttack = Player.GetNodeOrNull<BibleAttack>("BibleAttack");
+        if (upgrade.Effect is TemporaryUpgradeEffect.BibleDamage
+            or TemporaryUpgradeEffect.BibleCount
+            or TemporaryUpgradeEffect.BibleOrbitSpeed
+            or TemporaryUpgradeEffect.BibleRadius)
+        {
+            return bibleAttack != null && bibleAttack.IsUnlocked;
+        }
+
+        if (upgrade.Effect is TemporaryUpgradeEffect.UnlockCross
+            or TemporaryUpgradeEffect.UnlockLightning
+            or TemporaryUpgradeEffect.UnlockBible
+            or TemporaryUpgradeEffect.UnlockOrb
+            or TemporaryUpgradeEffect.UnlockFire)
+        {
+            return true;
+        }
+
+        if (upgrade.Effect is TemporaryUpgradeEffect.OrbDamage
+            or TemporaryUpgradeEffect.OrbCount
+            or TemporaryUpgradeEffect.OrbSpeed)
+        {
+            FloatingSphereAttack orb = Player.GetNodeOrNull<FloatingSphereAttack>("FloatingSphere");
+            return orb != null && orb.IsUnlocked;
+        }
+
+        GroundFireAttack fire = Player.GetNodeOrNull<GroundFireAttack>("GroundFire");
+        if (upgrade.Effect is TemporaryUpgradeEffect.FireDamage
+            or TemporaryUpgradeEffect.FireArea
+            or TemporaryUpgradeEffect.FireDuration
+            or TemporaryUpgradeEffect.FireFrequency)
+        {
+            return fire != null && fire.IsUnlocked;
+        }
+
+        SpiritWater spiritWater = Player.GetNodeOrNull<SpiritWater>("SpiritWater");
+        if (upgrade.Effect is TemporaryUpgradeEffect.SpiritWaterDamage
+            or TemporaryUpgradeEffect.SpiritWaterDuration
+            or TemporaryUpgradeEffect.SpiritWaterCooldown)
+        {
+            return spiritWater != null && spiritWater.IsUnlocked;
+        }
+
+        LifestealAttack lifesteal = Player.GetNodeOrNull<LifestealAttack>("Lifesteal");
+        return lifesteal != null && lifesteal.IsUnlocked;
     }
 
     private void OnChoose(Choice choice)
@@ -315,11 +433,22 @@ public partial class GameManager : Node
     {
         if (upgrade == null || !_temporaryUpgradeApplications.ContainsKey(upgrade.Id)) return false;
 
+        if (Player is ITemporaryUpgradeReceiver playerReceiver
+            && playerReceiver.TryApplyTemporaryUpgrade(upgrade))
+        {
+            _temporaryUpgradeApplications[upgrade.Id]++;
+            _combatHud?.Refresh(Player);
+            _combatHud?.PulseUpgrade(upgrade);
+            return true;
+        }
+
         foreach (Node child in Player.GetChildren())
         {
             if (child is not ITemporaryUpgradeReceiver receiver || !receiver.TryApplyTemporaryUpgrade(upgrade)) continue;
 
             _temporaryUpgradeApplications[upgrade.Id]++;
+            _combatHud?.Refresh(Player);
+            _combatHud?.PulseUpgrade(upgrade);
             return true;
         }
 
@@ -358,8 +487,9 @@ public partial class GameManager : Node
         if (!_runResultState.TryDeclareVictory()) return;
 
         _isRunOver = true;
+        ClearCombatEntities();
         RunCompleted?.Invoke();
-        FinishRun();
+        GetTree().CreateTimer(0.2f, true, false, true).Timeout += FinishRun;
     }
 
     private void FinishRun()
@@ -372,10 +502,35 @@ public partial class GameManager : Node
         GetTree().Paused = true;
     }
 
+    private void ClearCombatEntities()
+    {
+        _enemyManager.ClearEnemies();
+        foreach (Node child in GetNode<Node3D>("/root/MainScene").GetChildren())
+        {
+            if (child is Enemy or ExperiencePickup or FaithSurgePickup or RigidBody3D)
+            {
+                child.QueueFree();
+            }
+        }
+
+        if (Player == null) return;
+        foreach (Node child in Player.GetChildren()) StopCombatNode(child);
+    }
+
+    private static void StopCombatNode(Node node)
+    {
+        node.SetProcess(false);
+        node.SetPhysicsProcess(false);
+        if (node is Timer timer) timer.Stop();
+        foreach (Node child in node.GetChildren()) StopCombatNode(child);
+    }
+
     private void BindHud()
     {
         _gameTimeLabel = GetNodeOrNull<Label>("/root/MainScene/HUD/GameTime");
         _playerXpBar = GetNodeOrNull<ProgressBar>("/root/MainScene/HUD/PlayerXPBar");
+        _combatHud = GetNodeOrNull<CombatHud>("/root/MainScene/HUD");
+        _combatHud?.BindPlayer(_player);
 
         UpgradeView nextUpgradeView = GetNodeOrNull<UpgradeView>("/root/MainScene/HUD/UpgradeContainer");
         if (_upgradeView != nextUpgradeView)
@@ -390,12 +545,6 @@ public partial class GameManager : Node
             {
                 _upgradeView.OnChoose += OnChoose;
             }
-        }
-
-        SpawnWarningView nextSpawnWarningView = GetNodeOrNull<SpawnWarningView>("/root/MainScene/HUD/SpawnWarning");
-        if (_spawnWarningView != nextSpawnWarningView)
-        {
-            _spawnWarningView = nextSpawnWarningView;
         }
 
         RunResultsView nextResultsView = GetNodeOrNull<RunResultsView>("/root/MainScene/HUD/RunResultsContainer");
@@ -457,7 +606,65 @@ public partial class GameManager : Node
         .OrderBy(enemy => (Player.Position - enemy.Position).Length())
         .FirstOrDefault();
 
-    internal int GetMaxEnemyLifepoints(int level) => Mathf.RoundToInt(Math.Log10(level * 10));
+    internal IEnumerable<Enemy> GetLivingEnemies() => _enemyManager.Enemies
+        .Where(enemy => GodotObject.IsInstanceValid(enemy) && !enemy.IsDead);
+
+    internal int GetMaxEnemyLifepoints(int level) => Mathf.Clamp(
+        Mathf.RoundToInt(Math.Log10(level * 10)),
+        1,
+        2);
 
     internal int GetMaxEnemyLifepoints() => GetMaxEnemyLifepoints((int)(Player?.CurrentLevel ?? 1));
+
+    public int GetWeaponLevel(string weaponId)
+    {
+        if (string.IsNullOrEmpty(weaponId)) return 0;
+
+        bool owned = weaponId == "HolyLight" || (weaponId switch
+        {
+            "Cross" => Player?.GetNodeOrNull<CrossAttack>("CrossAttack")?.IsUnlocked == true,
+            "Lightning" => Player?.GetNodeOrNull<LightningAttack>("LightningAttack")?.IsUnlocked == true,
+            "Bible" => Player?.GetNodeOrNull<BibleAttack>("BibleAttack")?.IsUnlocked == true,
+            "Orb" => Player?.GetNodeOrNull<FloatingSphereAttack>("FloatingSphere")?.IsUnlocked == true,
+            "Fire" => Player?.GetNodeOrNull<GroundFireAttack>("GroundFire")?.IsUnlocked == true,
+            "SpiritWater" => Player?.GetNodeOrNull<SpiritWater>("SpiritWater")?.IsUnlocked == true,
+            "Lifesteal" => Player?.GetNodeOrNull<LifestealAttack>("Lifesteal")?.IsUnlocked == true,
+            _ => false,
+        });
+        if (!owned) return 0;
+
+        return 1 + _temporaryUpgradeApplications
+            .Where(pair => IsUpgradeForWeapon(pair.Key, weaponId))
+            .Sum(pair => (int)pair.Value);
+    }
+
+    private bool IsUpgradeForWeapon(string upgradeId, string weaponId)
+    {
+        TemporaryUpgradeDefinition upgrade = _temporaryUpgrades.FirstOrDefault(item => item.Id == upgradeId);
+        if (upgrade == null) return false;
+
+        return weaponId switch
+        {
+            "HolyLight" => upgrade.Effect is TemporaryUpgradeEffect.ProjectileDamage
+                or TemporaryUpgradeEffect.ProjectileAttackSpeed or TemporaryUpgradeEffect.ProjectileSpeed
+                or TemporaryUpgradeEffect.ProjectileCount or TemporaryUpgradeEffect.ProjectileSpread
+                or TemporaryUpgradeEffect.ProjectileSize or TemporaryUpgradeEffect.ProjectileCountDouble
+                or TemporaryUpgradeEffect.ProjectileDamagePercent or TemporaryUpgradeEffect.ProjectileAttackSpeedPercent,
+            "Cross" => upgrade.Effect is TemporaryUpgradeEffect.CrossDamage or TemporaryUpgradeEffect.CrossSize
+                or TemporaryUpgradeEffect.CrossCooldown,
+            "Lightning" => upgrade.Effect is TemporaryUpgradeEffect.LightningDamage or TemporaryUpgradeEffect.LightningCount
+                or TemporaryUpgradeEffect.LightningFrequency or TemporaryUpgradeEffect.LightningChainCount,
+            "Bible" => upgrade.Effect is TemporaryUpgradeEffect.BibleDamage or TemporaryUpgradeEffect.BibleCount
+                or TemporaryUpgradeEffect.BibleOrbitSpeed or TemporaryUpgradeEffect.BibleRadius,
+            "Orb" => upgrade.Effect is TemporaryUpgradeEffect.OrbDamage or TemporaryUpgradeEffect.OrbCount
+                or TemporaryUpgradeEffect.OrbSpeed,
+            "Fire" => upgrade.Effect is TemporaryUpgradeEffect.FireDamage or TemporaryUpgradeEffect.FireArea
+                or TemporaryUpgradeEffect.FireDuration or TemporaryUpgradeEffect.FireFrequency,
+            "SpiritWater" => upgrade.Effect is TemporaryUpgradeEffect.SpiritWaterDamage
+                or TemporaryUpgradeEffect.SpiritWaterDuration or TemporaryUpgradeEffect.SpiritWaterCooldown,
+            "Lifesteal" => upgrade.Effect is TemporaryUpgradeEffect.LifestealDamage
+                or TemporaryUpgradeEffect.LifestealCooldown,
+            _ => false,
+        };
+    }
 }

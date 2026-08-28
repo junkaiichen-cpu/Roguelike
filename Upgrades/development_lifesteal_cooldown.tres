@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="TemporaryUpgradeDefinition"]
+
+[ext_resource type="Script" path="res://Scripts/Progression/TemporaryUpgradeDefinition.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "lifesteal_cooldown"
+DisplayName = "Lifesteal Frequency"
+Description = "Increase Lifesteal attack frequency."
+Effect = 39
+Amount = 0.2
+MaxApplications = 5

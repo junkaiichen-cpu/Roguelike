@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="TemporaryUpgradeDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Progression/TemporaryUpgradeDefinition.cs" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+Id = "development_bible_radius"
+DisplayName = "Bible Orbit Radius"
+Description = "Expand the Bible orbit radius by 0.8."
+Effect = 23
+Amount = 0.8
+MaxApplications = 3

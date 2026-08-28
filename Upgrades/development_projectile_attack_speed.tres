@@ -6,7 +6,7 @@
 script = ExtResource("1_upgrade")
 Id = "development_projectile_attack_speed"
 DisplayName = "Development Projectile Attack Speed"
-Description = "Increase development projectile attacks per second by 0.25."
+Description = "Increase development projectile attacks per second by 0.3."
 Effect = 1
-Amount = 0.25
+Amount = 0.3
 MaxApplications = 6

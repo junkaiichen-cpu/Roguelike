@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-public partial class FloatingSphereAttack : Node3D, IUpgradable
+public partial class FloatingSphereAttack : Node3D, IUpgradable, ITemporaryUpgradeReceiver
 {
     [Export]
     public uint InitialSpheres = 1;
@@ -28,6 +28,9 @@ public partial class FloatingSphereAttack : Node3D, IUpgradable
     private PackedScene _spherePrefab;
     private List<Area3D> _spheres = new();
     private Timer _timer;
+    private bool _unlocked;
+
+    public bool IsUnlocked => _unlocked;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -38,13 +41,18 @@ public partial class FloatingSphereAttack : Node3D, IUpgradable
         _timer = GetNode<Timer>("Timer");
         _timer.WaitTime = Duration;
         _timer.Timeout += OnAttackEnd;
-        _timer.Start();
+        HideSpheres();
     }
 
-    private void OnBodyEntered(Node body)
+    private void OnBodyEntered(Area3D sphere, Node body)
     {
         if (body is not Enemy enemy) return;
         enemy.TakeDamages(TotalDamages);
+        MeshInstance3D visual = sphere.GetNodeOrNull<MeshInstance3D>("Visual");
+        if (visual == null) return;
+
+        visual.Scale = Vector3.One * 1.25f;
+        GetTree().CreateTween().TweenProperty(visual, "scale", Vector3.One, 0.1f);
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -63,11 +71,12 @@ public partial class FloatingSphereAttack : Node3D, IUpgradable
     private void AddSphere()
     {
         Area3D area = _spherePrefab.Instantiate<Area3D>();
-        area.BodyEntered += OnBodyEntered;
+        area.BodyEntered += body => OnBodyEntered(area, body);
         AddChild(area);
         _spheres.Add(area);
 
         RepositionSpheres();
+        area.Hide();
     }
 
     private void RepositionSpheres()
@@ -101,6 +110,15 @@ public partial class FloatingSphereAttack : Node3D, IUpgradable
         }
     }
 
+    public bool Unlock()
+    {
+        if (_unlocked) return false;
+        _unlocked = true;
+        ShowSpheres();
+        _timer.Start();
+        return true;
+    }
+
     private void HideSpheres()
     {
         foreach (var area in _spheres)
@@ -108,6 +126,32 @@ public partial class FloatingSphereAttack : Node3D, IUpgradable
             area.GetNode<GpuParticles3D>("Particles").Emitting = false;
             area.SetPhysicsProcess(false);
             area.Hide();
+        }
+    }
+
+    public bool TryApplyTemporaryUpgrade(TemporaryUpgradeDefinition upgrade)
+    {
+        if (upgrade == null || upgrade.Amount <= 0 || !float.IsFinite(upgrade.Amount)) return false;
+
+        switch (upgrade.Effect)
+        {
+            case TemporaryUpgradeEffect.UnlockOrb:
+                Unlock();
+                return true;
+            case TemporaryUpgradeEffect.OrbDamage:
+                if (!_unlocked) return false;
+                _damagesBonus += (uint)Mathf.Max(1, Mathf.FloorToInt(upgrade.Amount));
+                return true;
+            case TemporaryUpgradeEffect.OrbCount:
+                if (!_unlocked || _spheres.Count >= 4) return false;
+                AddSphere();
+                return true;
+            case TemporaryUpgradeEffect.OrbSpeed:
+                if (!_unlocked) return false;
+                RotationSpeed += upgrade.Amount;
+                return true;
+            default:
+                return false;
         }
     }
 

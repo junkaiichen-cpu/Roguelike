@@ -292,6 +292,9 @@ Known limitations:
   validation; no such stage-world contract exists in the current architecture.
 - The result UI and scene-reload restart are functional foundations only; no
   final visual polish, transition, reward, or persistence behavior exists.
+- Manual testing observed smoother gameplay at smaller window sizes; this is
+  recorded as an observation only and no broad performance optimization work
+  has been started.
 
 Bible content and later-phase systems:
 

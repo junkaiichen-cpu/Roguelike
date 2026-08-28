@@ -43,11 +43,14 @@ transform = Transform3D(0.2, 0, 0, 0, 0.2, 0, 0, 0, 0.2, 0, 0, 0)
 shape = SubResource("SphereShape3D_j4oj2")
 
 [node name="CSGSphere3D" type="CSGSphere3D" parent="."]
-transform = Transform3D(0.2, 0, 0, 0, 0.2, 0, 0, 0, 0.2, 0, 0, 0)
+transform = Transform3D(0.32, 0, 0, 0, 0.32, 0, 0, 0, 0.32, 0, 0, 0)
 radius = 2.0
 material = ExtResource("2_hsdve")
+cast_shadow = 0
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="."]
-amount = 32
+amount = 8
+lifetime = 0.35
+cast_shadow = 0
 process_material = SubResource("ParticleProcessMaterial_y5uhh")
 draw_pass_1 = SubResource("SphereMesh_e5nuh")

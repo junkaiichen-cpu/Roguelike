@@ -68,7 +68,7 @@ ExperienceReward = 20
 
 [node name="EnemySkeletonWarrior" parent="." instance=ExtResource("2_0oqdm")]
 
-[node name="Skeleton3D" parent="EnemySkeletonWarrior/RootNode/KayKit Animated Character" index="0"]
+[node name="Skeleton3D" parent="EnemySkeletonWarrior/KayKit Animated Character" index="0"]
 bones/0/rotation = Quaternion(-0.0348664, -0.00152229, -0.0435928, 0.99844)
 bones/1/rotation = Quaternion(0.068256, 0, -6.40284e-10, 0.997668)
 bones/2/rotation = Quaternion(0.679169, 0.196797, -0.679169, 0.196797)
@@ -77,43 +77,43 @@ bones/4/position = Vector3(-0.0014, 0.00691598, -1.03253e-11)
 bones/4/rotation = Quaternion(0.697176, -0.30388, -0.645579, -0.0695008)
 bones/5/rotation = Quaternion(0.300506, -0.376591, 0.679877, 0.55285)
 
-[node name="Body" parent="EnemySkeletonWarrior/RootNode/KayKit Animated Character/Skeleton3D" index="1"]
+[node name="Body" parent="EnemySkeletonWarrior/KayKit Animated Character/Skeleton3D" index="1"]
 transform = Transform3D(0.996195, 0.0871557, 1.72295e-08, -0.0869434, 0.993768, 0.0697567, 0.00607967, -0.0694912, 0.997564, 0, 0, 0)
 
-[node name="shield_gltf" parent="EnemySkeletonWarrior/RootNode/KayKit Animated Character/Skeleton3D/Body/character_skeleton_warrior_body" index="0" instance=ExtResource("3_2l28h")]
+[node name="shield_gltf" parent="EnemySkeletonWarrior/KayKit Animated Character/Skeleton3D/Body/character_skeleton_warrior_body" index="0" instance=ExtResource("3_2l28h")]
 transform = Transform3D(-1, -1.83917e-14, -8.74226e-08, -3.39286e-08, 0.92162, 0.388095, 8.05701e-08, 0.388095, -0.92162, 0.0115078, 0.548947, -0.332807)
 
-[node name="Head" parent="EnemySkeletonWarrior/RootNode/KayKit Animated Character/Skeleton3D" index="2"]
+[node name="Head" parent="EnemySkeletonWarrior/KayKit Animated Character/Skeleton3D" index="2"]
 transform = Transform3D(0.996195, 0.0863436, -0.01187, -0.0869434, 0.994009, -0.0662381, 0.00607967, 0.0670181, 0.997733, 0.000620198, 0.00707163, -0.000494498)
 
-[node name="character_skeleton_warrior_head" parent="EnemySkeletonWarrior/RootNode/KayKit Animated Character/Skeleton3D/Head" index="0"]
+[node name="character_skeleton_warrior_head" parent="EnemySkeletonWarrior/KayKit Animated Character/Skeleton3D/Head" index="0"]
 transform = Transform3D(0.01, -1.34359e-09, 5.96047e-09, 1.34359e-09, 0.01, -7.21775e-09, -5.96047e-09, 7.21775e-09, 0.01, -9.04989e-10, -7.06143e-05, 5.06407e-09)
 
-[node name="character_skeleton_warrior_helmet" parent="EnemySkeletonWarrior/RootNode/KayKit Animated Character/Skeleton3D/Head/character_skeleton_warrior_head" index="1"]
+[node name="character_skeleton_warrior_helmet" parent="EnemySkeletonWarrior/KayKit Animated Character/Skeleton3D/Head/character_skeleton_warrior_head" index="1"]
 visible = false
 
-[node name="character_skeleton_warrior_jaw" parent="EnemySkeletonWarrior/RootNode/KayKit Animated Character/Skeleton3D/Head/character_skeleton_warrior_head" index="2"]
+[node name="character_skeleton_warrior_jaw" parent="EnemySkeletonWarrior/KayKit Animated Character/Skeleton3D/Head/character_skeleton_warrior_head" index="2"]
 visible = false
 
-[node name="sword_broken_half_gltf" parent="EnemySkeletonWarrior/RootNode/KayKit Animated Character/Skeleton3D/Head/character_skeleton_warrior_head" index="3" instance=ExtResource("4_o0ych")]
+[node name="sword_broken_half_gltf" parent="EnemySkeletonWarrior/KayKit Animated Character/Skeleton3D/Head/character_skeleton_warrior_head" index="3" instance=ExtResource("4_o0ych")]
 transform = Transform3D(0.309366, -0.94995, 0.043444, 0.946413, 0.312025, 0.0833292, -0.0927142, 0.0153368, 0.995575, -0.260555, 0.683836, 0.0911871)
 
-[node name="ArmLeft" parent="EnemySkeletonWarrior/RootNode/KayKit Animated Character/Skeleton3D" index="3"]
+[node name="ArmLeft" parent="EnemySkeletonWarrior/KayKit Animated Character/Skeleton3D" index="3"]
 transform = Transform3D(4.21484e-08, 0.458944, -0.888465, -0.0697568, -0.886301, -0.457826, -0.997565, 0.0619764, 0.0320143, 0.00199744, 0.00675116, -0.000472088)
 
-[node name="ArmRight" parent="EnemySkeletonWarrior/RootNode/KayKit Animated Character/Skeleton3D" index="4"]
+[node name="ArmRight" parent="EnemySkeletonWarrior/KayKit Animated Character/Skeleton3D" index="4"]
 transform = Transform3D(-0.0472707, -0.581716, -0.812018, -0.396052, -0.735381, 0.54987, -0.917011, 0.347594, -0.195628, -0.000791906, 0.0069946, -0.000489111)
 
-[node name="HandSlotLeft" parent="EnemySkeletonWarrior/RootNode/KayKit Animated Character/Skeleton3D" index="5"]
+[node name="HandSlotLeft" parent="EnemySkeletonWarrior/KayKit Animated Character/Skeleton3D" index="5"]
 transform = Transform3D(-0.999892, 1.70555e-07, 0.0146781, 0.0146424, 0.0697568, 0.997457, -0.00102376, 0.997565, -0.0697492, 0.00452587, 0.00186833, -0.000130646)
 
-[node name="bone_gltf" parent="EnemySkeletonWarrior/RootNode/KayKit Animated Character/Skeleton3D/HandSlotLeft" index="0" instance=ExtResource("5_7kk0h")]
+[node name="bone_gltf" parent="EnemySkeletonWarrior/KayKit Animated Character/Skeleton3D/HandSlotLeft" index="0" instance=ExtResource("5_7kk0h")]
 transform = Transform3D(0.00999994, 5.3757e-09, 3.51488e-05, -1.61848e-09, 0.01, -4.89946e-10, -3.51495e-05, -5.83977e-11, 0.00999993, -1.34846e-05, 2.03997e-05, -5.11971e-05)
 
-[node name="HandSlotRight" parent="EnemySkeletonWarrior/RootNode/KayKit Animated Character/Skeleton3D" index="6"]
+[node name="HandSlotRight" parent="EnemySkeletonWarrior/KayKit Animated Character/Skeleton3D" index="6"]
 transform = Transform3D(-0.965722, 0.253358, 0.0564953, 0.149698, 0.36577, 0.918588, 0.212067, 0.895558, -0.391159, -0.00399671, 0.00294322, 0.00142586)
 
-[node name="sword_broken_gltf" parent="EnemySkeletonWarrior/RootNode/KayKit Animated Character/Skeleton3D/HandSlotRight" index="0" instance=ExtResource("5_ir3au")]
+[node name="sword_broken_gltf" parent="EnemySkeletonWarrior/KayKit Animated Character/Skeleton3D/HandSlotRight" index="0" instance=ExtResource("5_ir3au")]
 transform = Transform3D(-8.00018e-06, 0.000704448, 0.00997514, 0.000656875, 0.00995365, -0.000702403, -0.0099784, 0.000654681, -5.42369e-05, -0.000211431, 0.000687208, -4.5707e-06)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
@@ -131,7 +131,7 @@ autostart = true
 tree_root = SubResource("AnimationNodeStateMachine_37bnq")
 anim_player = NodePath("../EnemySkeletonWarrior/AnimationPlayer")
 active = true
-root_motion_track = NodePath("RootNode/KayKit Animated Character/Skeleton3D:Body")
+root_motion_track = NodePath("KayKit Animated Character/Skeleton3D:Body")
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.41888, 0)

@@ -4,7 +4,31 @@
 [ext_resource type="PackedScene" uid="uid://oqbxhb2symxp" path="res://Prefabs/UI/powerup_block.tscn" id="2_cdj2w"]
 [ext_resource type="Script" uid="uid://bttsdt8w0l4ni" path="res://Scripts/UI/UpgradeView.cs" id="2_esggw"]
 [ext_resource type="Script" path="res://Scripts/UI/RunResultsView.cs" id="4_results"]
-[ext_resource type="Script" path="res://Scripts/UI/SpawnWarningView.cs" id="5_spawn_warning"]
+[ext_resource type="Script" path="res://Scripts/UI/CombatHud.cs" id="5_combat_hud"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_status"]
+bg_color = Color(0.035, 0.06, 0.09, 0.78)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.55, 0.7, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_weapons"]
+bg_color = Color(0.06, 0.04, 0.08, 0.76)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.65, 0.42, 0.2, 0.72)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [node name="HUD" type="Control"]
 layout_mode = 3
@@ -13,6 +37,133 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("5_combat_hud")
+
+[node name="PlayerStatus" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -230.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 128.0
+grow_horizontal = 0
+theme_override_constants/separation = 3
+
+[node name="StatusPanel" type="Panel" parent="."]
+z_index = -1
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -240.0
+offset_top = 14.0
+offset_right = -14.0
+offset_bottom = 138.0
+grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_status")
+
+[node name="Name" type="Label" parent="PlayerStatus"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "[P] JK大房子"
+horizontal_alignment = 2
+
+[node name="Health" type="Label" parent="PlayerStatus"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(1, 0.34, 0.3, 1)
+text = "HP 200/200"
+horizontal_alignment = 2
+
+[node name="Level" type="Label" parent="PlayerStatus"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+text = "LV 1"
+horizontal_alignment = 2
+
+[node name="WeaponBar" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -54.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="WeaponsPanel" type="Panel" parent="."]
+z_index = -1
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -58.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_weapons")
+
+[node name="HolyLight" type="Label" parent="WeaponBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "✦ 1"
+horizontal_alignment = 1
+
+[node name="Cross" type="Label" parent="WeaponBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "✝ 1"
+visible = false
+horizontal_alignment = 1
+
+[node name="Lightning" type="Label" parent="WeaponBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "⚡ 1"
+visible = false
+horizontal_alignment = 1
+
+[node name="Bible" type="Label" parent="WeaponBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "📖 1"
+visible = false
+horizontal_alignment = 1
+
+[node name="Orb" type="Label" parent="WeaponBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "● 1"
+visible = false
+horizontal_alignment = 1
+
+[node name="Fire" type="Label" parent="WeaponBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "🔥 1"
+visible = false
+horizontal_alignment = 1
+
+[node name="SpiritWater" type="Label" parent="WeaponBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "💧 1"
+visible = false
+horizontal_alignment = 1
+
+[node name="Lifesteal" type="Label" parent="WeaponBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "♥ 1"
+visible = false
+horizontal_alignment = 1
 
 [node name="GameTime" type="Label" parent="."]
 layout_mode = 0
@@ -45,9 +196,9 @@ offset_bottom = 80.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="SpawnWarning" type="Control" parent="."]
-process_mode = 4
-z_index = 3
+[node name="PlayerDamageFlash" type="ColorRect" parent="."]
+process_mode = 3
+z_index = 4
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -55,17 +206,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-script = ExtResource("5_spawn_warning")
-
-[node name="Indicator" type="Label" parent="SpawnWarning"]
-layout_mode = 0
-offset_right = 48.0
-offset_bottom = 48.0
-theme_override_font_sizes/font_size = 30
-text = "▲"
-horizontal_alignment = 1
-vertical_alignment = 1
-mouse_filter = 2
+color = Color(0.9, 0.08, 0.04, 0)
 
 [node name="UpgradeContainer" type="HBoxContainer" parent="."]
 z_index = 1

@@ -1,10 +1,14 @@
-[gd_scene load_steps=12 format=3 uid="uid://brnj7g14cjd0j"]
+[gd_scene load_steps=16 format=3 uid="uid://brnj7g14cjd0j"]
 
 [ext_resource type="Script" uid="uid://dc3lgw5tx1rvo" path="res://Scripts/Players/Player.cs" id="1_6pgcl"]
 [ext_resource type="PackedScene" uid="uid://cjgoeugpyg7n1" path="res://Prefabs/Powerups/shooting.tscn" id="3_h4lb3"]
 [ext_resource type="PackedScene" uid="uid://cr6nu73ixtmqt" path="res://Prefabs/Powerups/spirit_water.tscn" id="4_cm2ek"]
 [ext_resource type="PackedScene" uid="uid://cxsvig1irj1y5" path="res://Prefabs/Powerups/lifesteal.tscn" id="5_c6obf"]
 [ext_resource type="PackedScene" uid="uid://cry7wgh8tlrqd" path="res://Prefabs/Powerups/floating_sphere.tscn" id="6_eygic"]
+[ext_resource type="Script" path="res://Scripts/Players/CrossAttack.cs" id="7_cross"]
+[ext_resource type="Script" path="res://Scripts/Players/LightningAttack.cs" id="9_lightning"]
+[ext_resource type="Script" path="res://Scripts/Players/BibleAttack.cs" id="10_bible"]
+[ext_resource type="Script" path="res://Scripts/Players/GroundFireAttack.cs" id="11_fire"]
 [ext_resource type="PackedScene" uid="uid://bjuqvgbfyhybk" path="res://addons/kaykit_characters/Mage.glb" id="8_fob2n"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_fam3i"]
@@ -30,6 +34,8 @@ node_connections = [&"output", 0, &"walking", &"walking", 0, &"Animation", &"wal
 collision_mask = 9
 script = ExtResource("1_6pgcl")
 Speed = 9.0
+ExperienceRequiredForFirstLevel = 2
+ExperienceRequirementIncreasePerLevel = 2
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, -7.57102e-08, 1.31134e-07, -7.57103e-08, 0.5, 0.866025, -1.31134e-07, -0.866025, 0.5, 0, 16.984, 8.711)
@@ -113,12 +119,24 @@ autostart = true
 
 [node name="Shooting" parent="." instance=ExtResource("3_h4lb3")]
 
-[node name="SpiritWater" parent="." instance=ExtResource("4_cm2ek")]
+[node name="CrossAttack" type="Node3D" parent="."]
+script = ExtResource("7_cross")
 
-[node name="Lifesteal" parent="." instance=ExtResource("5_c6obf")]
+[node name="LightningAttack" type="Node3D" parent="."]
+script = ExtResource("9_lightning")
+
+[node name="BibleAttack" type="Node3D" parent="."]
+script = ExtResource("10_bible")
 
 [node name="FloatingSphere" parent="." instance=ExtResource("6_eygic")]
 SphereDistance = 4.0
+
+[node name="GroundFire" type="Node3D" parent="."]
+script = ExtResource("11_fire")
+
+[node name="SpiritWater" parent="." instance=ExtResource("4_cm2ek")]
+
+[node name="Lifesteal" parent="." instance=ExtResource("5_c6obf")]
 
 [connection signal="timeout" from="AttackCooldown" to="." method="OnAttackTimeOut"]
 

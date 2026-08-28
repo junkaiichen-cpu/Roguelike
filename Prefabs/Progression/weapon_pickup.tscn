@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Players/WeaponPickup.cs" id="1_pickup"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_pickup"]
+radius = 1.5
+
+[sub_resource type="SphereMesh" id="SphereMesh_pickup"]
+radius = 0.75
+height = 1.5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pickup"]
+shading_mode = 0
+albedo_color = Color(1, 0.75, 0.12, 1)
+emission_enabled = true
+emission = Color(1, 0.25, 0.02, 1)
+emission_energy_multiplier = 2
+
+[node name="WeaponPickup" type="Area3D"]
+collision_layer = 0
+collision_mask = 1
+monitorable = false
+script = ExtResource("1_pickup")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_pickup")
+
+[node name="Visual" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_pickup")
+material_override = SubResource("StandardMaterial3D_pickup")
+cast_shadow = 0

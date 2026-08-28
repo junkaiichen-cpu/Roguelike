@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="TemporaryUpgradeDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Progression/TemporaryUpgradeDefinition.cs" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+Id = "development_bible_damage"
+DisplayName = "Bible Damage"
+Description = "Increase orbiting Bible damage by 5."
+Effect = 20
+Amount = 5.0
+MaxApplications = 4

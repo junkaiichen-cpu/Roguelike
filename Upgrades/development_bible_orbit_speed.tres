@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="TemporaryUpgradeDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Progression/TemporaryUpgradeDefinition.cs" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+Id = "development_bible_orbit_speed"
+DisplayName = "Bible Orbit Speed"
+Description = "Increase Bible orbit speed by 45 degrees per second."
+Effect = 22
+Amount = 45.0
+MaxApplications = 3

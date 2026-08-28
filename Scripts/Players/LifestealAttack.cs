@@ -1,6 +1,6 @@
 using Godot;
 
-public partial class LifestealAttack : Node3D, IUpgradable
+public partial class LifestealAttack : Node3D, IUpgradable, ITemporaryUpgradeReceiver
 {
     [Export]
     public uint Damages = 1;
@@ -18,6 +18,9 @@ public partial class LifestealAttack : Node3D, IUpgradable
     private Player _player;
     private Timer _stealCooldown;
     private Area3D _area;
+    private bool _unlocked;
+
+    public bool IsUnlocked => _unlocked;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -25,13 +28,21 @@ public partial class LifestealAttack : Node3D, IUpgradable
         _player = GetParent<Player>();
         _stealCooldown = GetNode<Timer>("Timer");
         _stealCooldown.WaitTime = 1f / TotalCooldown;
-        _stealCooldown.Start();
         _area = GetNode<Area3D>("Area3D");
+    }
+
+    public bool Unlock()
+    {
+        if (_unlocked) return false;
+        _unlocked = true;
+        _stealCooldown.Start();
+        return true;
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _PhysicsProcess(double delta)
     {
+        if (!_unlocked) return;
         if (_stealCooldown.TimeLeft > 0) return;
 
         _stealCooldown.Start();
@@ -56,6 +67,26 @@ public partial class LifestealAttack : Node3D, IUpgradable
                 _stealCooldown.WaitTime = 1f / TotalCooldown;
                 break;
             default: break;
+        }
+    }
+
+    public bool TryApplyTemporaryUpgrade(TemporaryUpgradeDefinition upgrade)
+    {
+        if (upgrade == null || upgrade.Amount <= 0 || !float.IsFinite(upgrade.Amount)) return false;
+        if (upgrade.Effect == TemporaryUpgradeEffect.UnlockLifesteal) return Unlock();
+        if (!_unlocked) return false;
+
+        switch (upgrade.Effect)
+        {
+            case TemporaryUpgradeEffect.LifestealDamage:
+                _damagesBonus += (uint)Mathf.Max(1, Mathf.FloorToInt(upgrade.Amount));
+                return true;
+            case TemporaryUpgradeEffect.LifestealCooldown:
+                _cooldownBonus += upgrade.Amount;
+                _stealCooldown.WaitTime = 1f / TotalCooldown;
+                return true;
+            default:
+                return false;
         }
     }
 }

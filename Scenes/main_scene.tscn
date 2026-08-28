@@ -1,9 +1,11 @@
-[gd_scene load_steps=8 format=3 uid="uid://b2jsscceukix4"]
+[gd_scene load_steps=12 format=3 uid="uid://b2jsscceukix4"]
 
 [ext_resource type="PackedScene" uid="uid://brnj7g14cjd0j" path="res://Prefabs/player.tscn" id="1_22blk"]
 [ext_resource type="PackedScene" uid="uid://ccwt5vlfksxqv" path="res://Scenes/HUD.tscn" id="4_4douh"]
 [ext_resource type="MeshLibrary" uid="uid://cc62mitek1vk2" path="res://Objects/Libraries/kaylousberg_dungeon.tres" id="7_3g017"]
 [ext_resource type="Script" uid="uid://c1hx08aqkelif" path="res://Scripts/UI/DamageLabelManager.cs" id="9_hf6p0"]
+[ext_resource type="Script" uid="uid://dxe6i3eviw2us" path="res://Scripts/Run/PlayableBoundary.cs" id="10_boundary"]
+[ext_resource type="PackedScene" path="res://Prefabs/Progression/weapon_pickup.tscn" id="11_weapon_pickup"]
 
 [sub_resource type="Environment" id="Environment_7aawg"]
 ambient_light_source = 1
@@ -11,7 +13,6 @@ tonemap_mode = 3
 ssr_fade_in = 0.227357
 ssao_enabled = true
 ssil_enabled = true
-sdfgi_enabled = true
 glow_enabled = true
 glow_normalized = true
 glow_intensity = 4.2
@@ -32,6 +33,12 @@ dof_blur_amount = 0.07
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_3ms7s"]
 size = Vector3(200, 0.2, 200)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_boundary_x"]
+size = Vector3(1, 4, 100)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_boundary_z"]
+size = Vector3(100, 4, 1)
 
 [node name="MainScene" type="Node3D"]
 
@@ -69,3 +76,50 @@ collision_mask = 15
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="GroundCollider"]
 shape = SubResource("BoxShape3D_3ms7s")
+
+[node name="MapBoundary" type="StaticBody3D" parent="."]
+collision_layer = 8
+script = ExtResource("10_boundary")
+
+[node name="West" type="CollisionShape3D" parent="MapBoundary"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 2, 0)
+shape = SubResource("BoxShape3D_boundary_x")
+
+[node name="East" type="CollisionShape3D" parent="MapBoundary"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 2, 0)
+shape = SubResource("BoxShape3D_boundary_x")
+
+[node name="North" type="CollisionShape3D" parent="MapBoundary"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -50)
+shape = SubResource("BoxShape3D_boundary_z")
+
+[node name="South" type="CollisionShape3D" parent="MapBoundary"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 50)
+shape = SubResource("BoxShape3D_boundary_z")
+
+[node name="OrbPickup" parent="." instance=ExtResource("11_weapon_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0.8, 8)
+
+[node name="FirePickup" parent="." instance=ExtResource("11_weapon_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0.8, -10)
+WeaponType = 1
+
+[node name="SpiritWaterPickup" parent="." instance=ExtResource("11_weapon_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 0.8, -14)
+WeaponType = 2
+
+[node name="LifestealPickup" parent="." instance=ExtResource("11_weapon_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0.8, 16)
+WeaponType = 3
+
+[node name="CrossPickup" parent="." instance=ExtResource("11_weapon_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28, 0.8, 20)
+WeaponType = 4
+
+[node name="LightningPickup" parent="." instance=ExtResource("11_weapon_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0.8, -22)
+WeaponType = 5
+
+[node name="BiblePickup" parent="." instance=ExtResource("11_weapon_pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 30)
+WeaponType = 6

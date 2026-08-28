@@ -4,6 +4,6 @@
 
 [resource]
 script = ExtResource("1_stage")
-DurationSeconds = 300.0
+DurationSeconds = 75.0
 SpawnRateMultiplier = 2.0
 PopulationMultiplier = 2.0

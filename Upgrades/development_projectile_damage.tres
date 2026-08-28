@@ -6,7 +6,7 @@
 script = ExtResource("1_upgrade")
 Id = "development_projectile_damage"
 DisplayName = "Development Projectile Damage"
-Description = "Increase development projectile damage by 1."
+Description = "Increase development projectile damage by 2."
 Effect = 0
-Amount = 1.0
+Amount = 2.0
 MaxApplications = 6

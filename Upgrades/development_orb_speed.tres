@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="TemporaryUpgradeDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Progression/TemporaryUpgradeDefinition.cs" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+Id = "development_orb_speed"
+DisplayName = "Orb Orbit Speed"
+Description = "Increase Holy Orb rotation speed by 1.5."
+Effect = 27
+Amount = 1.5
+MaxApplications = 3

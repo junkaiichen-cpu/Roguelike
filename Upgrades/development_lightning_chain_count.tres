@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="TemporaryUpgradeDefinition"]
+
+[ext_resource type="Script" path="res://Scripts/Progression/TemporaryUpgradeDefinition.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "lightning_chain_count"
+DisplayName = "Lightning Chain"
+Description = "Chain Lightning to one more nearby enemy."
+Effect = 41
+Amount = 1.0
+MaxApplications = 3

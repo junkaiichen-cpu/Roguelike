@@ -1,7 +1,7 @@
 using Godot;
 using System.Collections.Generic;
 
-public partial class DamageLabelManager : Control
+public partial class DamageLabelManager : CombatHud
 {
     public const uint InitialQueue = 50;
 
@@ -15,6 +15,7 @@ public partial class DamageLabelManager : Control
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
+        base._Ready();
         ProcessMode = ProcessModeEnum.Always;
 
         _camera = GetNode<Camera3D>("../Player/Camera3D");

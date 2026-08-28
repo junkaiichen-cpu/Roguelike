@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CharacterDefinition"]
+
+[ext_resource type="Script" path="res://Scripts/Progression/CharacterDefinition.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+CharacterId = "warrior"
+DisplayName = "Warrior"
+Description = "Durable and forceful, but slower on the field."
+BaseHP = 240
+BaseDamageMultiplier = 1.1
+BaseMoveSpeedMultiplier = 0.88
+BasePickupRangeMultiplier = 1.0
+BaseXPGainMultiplier = 1.0
+BaseLuckMultiplier = 1.0
+StartingWeapon = 0
+StartingPassiveId = "passive_max_health"

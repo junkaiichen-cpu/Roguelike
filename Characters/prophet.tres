@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CharacterDefinition"]
+
+[ext_resource type="Script" path="res://Scripts/Progression/CharacterDefinition.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+CharacterId = "prophet"
+DisplayName = "Prophet"
+Description = "Finds pickups and rare rewards, but deals less damage."
+BaseHP = 190
+BaseDamageMultiplier = 0.9
+BaseMoveSpeedMultiplier = 1.0
+BasePickupRangeMultiplier = 1.2
+BaseXPGainMultiplier = 1.0
+BaseLuckMultiplier = 1.2
+StartingWeapon = 0
+StartingPassiveId = "passive_pickup_range"

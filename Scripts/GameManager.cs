@@ -57,6 +57,8 @@ public partial class GameManager : Node
 
     private bool _isVotePhase;
     private bool _isApplyingUpgrade;
+    private int _rerollsRemaining = 2;
+    private readonly HashSet<string> _banishedUpgradeIds = new();
     private uint _pendingLevelUpChoices;
     private UpgradeView _upgradeView;
     private List<Choice> _currentVotes;
@@ -64,6 +66,8 @@ public partial class GameManager : Node
     private readonly Dictionary<string, uint> _temporaryUpgradeApplications = new();
     private readonly Dictionary<string, WeaponRuntimeState> _weaponStates = new();
     private MetaProgressionState _metaProgressionState;
+    private readonly List<CharacterDefinition> _characterDefinitions = new();
+    private CharacterDefinition _selectedCharacter;
     private readonly Dictionary<string, PassiveRuntimeState> _passiveStates = new();
         private readonly List<EventDefinition> _eventDefinitions = new();
         private readonly EventRuntimeState _eventState = new();
@@ -73,6 +77,7 @@ public partial class GameManager : Node
     private readonly HashSet<ExperiencePickup> _experiencePickups = new();
     private PackedScene _experiencePickupPrefab;
     private PackedScene _faithSurgePickupPrefab;
+    private PackedScene _treasurePickupPrefab;
     private Player _vacuumPlayer;
     private double _vacuumRemaining;
 
@@ -84,6 +89,14 @@ public partial class GameManager : Node
     public RunLifecycleStatus RunStatus => _runPressureState?.Status ?? RunLifecycleStatus.NotStarted;
 
     public RunResultStatus RunResult => _runResultState.Status;
+
+    public MetaProgressionState MetaProgression => _metaProgressionState;
+
+    public CharacterDefinition SelectedCharacter => _selectedCharacter;
+
+    public IReadOnlyList<CharacterDefinition> CharacterDefinitions => _characterDefinitions;
+
+    public event Action MetaProgressionChanged;
 
     public int CurrentStageNumber => _runPressureState?.CurrentStageNumber ?? 0;
 
@@ -106,10 +119,12 @@ public partial class GameManager : Node
 
         _experiencePickupPrefab = GD.Load<PackedScene>("res://Prefabs/Progression/experience_pickup.tscn");
         _faithSurgePickupPrefab = GD.Load<PackedScene>("res://Prefabs/Progression/faith_surge_pickup.tscn");
+        _treasurePickupPrefab = GD.Load<PackedScene>("res://Prefabs/Progression/treasure_pickup.tscn");
         LoadTemporaryUpgrades();
         LoadPassiveDefinitions();
         LoadFusionDefinitions();
         _metaProgressionState = MetaProgressionSave.Load();
+        LoadCharacterDefinitions();
         EnsureWeaponStates();
         UpdatePlayerProgressDisplay();
         StartRun();
@@ -286,6 +301,28 @@ public partial class GameManager : Node
         }
     }
 
+    private void LoadCharacterDefinitions()
+    {
+        foreach (string path in new[]
+        {
+            "res://Characters/disciple.tres",
+            "res://Characters/warrior.tres",
+            "res://Characters/prophet.tres",
+        })
+        {
+            CharacterDefinition definition = GD.Load<CharacterDefinition>(path);
+            if (definition != null) _characterDefinitions.Add(definition);
+        }
+
+        _selectedCharacter = _characterDefinitions.FirstOrDefault();
+    }
+
+    public void SelectCharacter(string characterId)
+    {
+        CharacterDefinition selected = _characterDefinitions.FirstOrDefault(item => item.CharacterId == characterId);
+        if (selected != null) _selectedCharacter = selected;
+    }
+
     private void TriggerNextEvent()
     {
         if (_eventDefinitions.Count == 0 || Player == null) return;
@@ -409,6 +446,14 @@ public partial class GameManager : Node
         pickup.GlobalPosition = position + new Vector3(0, 0.8f, 0);
     }
 
+    internal void SpawnTreasure(Vector3 position)
+    {
+        if (_isRunOver || _treasurePickupPrefab == null) return;
+        TreasurePickup pickup = _treasurePickupPrefab.Instantiate<TreasurePickup>();
+        GetNode<Node3D>("/root/MainScene").AddChild(pickup);
+        pickup.GlobalPosition = position + new Vector3(0, 0.8f, 0);
+    }
+
     internal void ActivateExperienceVacuum(Player player)
     {
         _vacuumPlayer = player;
@@ -447,6 +492,7 @@ public partial class GameManager : Node
     {
         List<TemporaryUpgradeDefinition> eligibleUpgrades = _temporaryUpgrades
             .Where(upgrade => _temporaryUpgradeApplications[upgrade.Id] < upgrade.MaxApplications)
+            .Where(upgrade => !_banishedUpgradeIds.Contains(upgrade.Id))
             .Where(IsUpgradeAvailable)
             .OrderBy(_ => GD.Randf())
             .Take(UpgradeChoiceCount)
@@ -467,6 +513,32 @@ public partial class GameManager : Node
 
         _currentVotes = eligibleUpgrades.Select(upgrade => new Choice(upgrade)).ToList();
         _upgradeView.SetChoices(_currentVotes);
+    }
+
+    private void OnRerollRequested()
+    {
+        if (!_isVotePhase || _rerollsRemaining <= 0) return;
+        _rerollsRemaining--;
+        DisplayNextUpgradeChoices();
+    }
+
+    private void OnSkipRequested()
+    {
+        if (!_isVotePhase) return;
+        _pendingLevelUpChoices--;
+        _isVotePhase = false;
+        _upgradeView.Clear();
+        if (_pendingLevelUpChoices > 0) DisplayNextUpgradeChoices();
+    }
+
+    private void OnBanishRequested(Choice choice)
+    {
+        if (!_isVotePhase || choice?.Upgrade == null) return;
+        _banishedUpgradeIds.Add(choice.Upgrade.Id);
+        _pendingLevelUpChoices--;
+        _isVotePhase = false;
+        _upgradeView.Clear();
+        if (_pendingLevelUpChoices > 0) DisplayNextUpgradeChoices();
     }
 
     private bool IsUpgradeAvailable(TemporaryUpgradeDefinition upgrade)
@@ -665,6 +737,7 @@ public partial class GameManager : Node
         ClearCombatEntities();
         _metaProgressionState.AddFaith(50);
         MetaProgressionSave.Save(_metaProgressionState);
+        MetaProgressionChanged?.Invoke();
         RunCompleted?.Invoke();
         GetTree().CreateTimer(0.2f, true, false, true).Timeout += FinishRun;
     }
@@ -715,12 +788,18 @@ public partial class GameManager : Node
             if (_upgradeView != null)
             {
                 _upgradeView.OnChoose -= OnChoose;
+                _upgradeView.RerollRequested -= OnRerollRequested;
+                _upgradeView.SkipRequested -= OnSkipRequested;
+                _upgradeView.BanishRequested -= OnBanishRequested;
             }
 
             _upgradeView = nextUpgradeView;
             if (_upgradeView != null)
             {
                 _upgradeView.OnChoose += OnChoose;
+                _upgradeView.RerollRequested += OnRerollRequested;
+                _upgradeView.SkipRequested += OnSkipRequested;
+                _upgradeView.BanishRequested += OnBanishRequested;
             }
         }
 
@@ -762,6 +841,8 @@ public partial class GameManager : Node
 
         _weaponStates.Clear();
         _passiveStates.Clear();
+        _banishedUpgradeIds.Clear();
+        _rerollsRemaining = 2;
         _fusionStates.Clear();
         _enemyManager.ClearEnemies();
         GetTree().Paused = false;
@@ -967,6 +1048,23 @@ public partial class GameManager : Node
     }
 
     public int FaithCurrency => _metaProgressionState?.FaithCurrency ?? 0;
+
+    internal void CollectTreasure(Player player)
+    {
+        if (player == null || _metaProgressionState == null) return;
+        _metaProgressionState.AddFaith(25);
+        MetaProgressionSave.Save(_metaProgressionState);
+        player.CollectExperience(10);
+        MetaProgressionChanged?.Invoke();
+    }
+
+    public bool PurchasePermanentUpgrade(string upgradeId)
+    {
+        if (_metaProgressionState == null || !_metaProgressionState.TryPurchaseUpgrade(upgradeId)) return false;
+        MetaProgressionSave.Save(_metaProgressionState);
+        MetaProgressionChanged?.Invoke();
+        return true;
+    }
 
     public bool CanFuse(FusionDefinition definition)
     {

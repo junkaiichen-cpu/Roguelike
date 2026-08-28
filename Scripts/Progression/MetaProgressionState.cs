@@ -40,4 +40,19 @@ public sealed class MetaProgressionState
     }
 
     public bool IsUnlocked(string unlockId) => _unlocks.Contains(unlockId);
+
+    public int GetUpgradeCost(string upgradeId)
+    {
+        int level = GetUpgradeLevel(upgradeId);
+        return Math.Clamp(20 * (level + 1), 1, int.MaxValue);
+    }
+
+    public bool TryPurchaseUpgrade(string upgradeId)
+    {
+        if (string.IsNullOrWhiteSpace(upgradeId)) return false;
+        int cost = GetUpgradeCost(upgradeId);
+        if (!SpendFaith(cost)) return false;
+        SetUpgradeLevel(upgradeId, GetUpgradeLevel(upgradeId) + 1);
+        return true;
+    }
 }

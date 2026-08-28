@@ -43,6 +43,9 @@ public partial class Player : CharacterBody3D, ITemporaryUpgradeReceiver
     public float PassiveCooldownMultiplier { get; private set; } = 1f;
     public float PassiveAreaMultiplier { get; private set; } = 1f;
     public float PassiveProjectileSizeMultiplier { get; private set; } = 1f;
+    public float PermanentDamageMultiplier { get; private set; } = 1f;
+    public float PermanentExperienceMultiplier { get; private set; } = 1f;
+    public float PermanentLuckMultiplier { get; private set; } = 1f;
 
     public bool ActivateWeapon(WeaponPickupType weaponType)
     {
@@ -109,14 +112,21 @@ public partial class Player : CharacterBody3D, ITemporaryUpgradeReceiver
     {
         base._Ready();
 
+        _gameManager = GetNode<GameManager>("/root/GameManager");
+        ApplyCharacterDefinition(_gameManager.SelectedCharacter);
         _runtimeState = new(MaxHealth);
         _progressionState = new(
             initialLevel: 1,
             initialExperienceRequired: ExperienceRequiredForFirstLevel,
             experienceRequirementIncreasePerLevel: ExperienceRequirementIncreasePerLevel);
 
-        _gameManager = GetNode<GameManager>("/root/GameManager");
         _gameManager.Player = this;
+        if (_gameManager.SelectedCharacter?.StartingPassiveId == "passive_max_health")
+        {
+            _runtimeState.IncreaseMaxHealth(10);
+            MaxHealth = _runtimeState.MaxHealth;
+        }
+        ApplyMetaProgression(_gameManager.MetaProgression);
         _playerLifebar = GetTree().CurrentScene.GetNode<ProgressBar>("HUD/PlayerLifeBar");
         _playerLifebar.MaxValue = MaxHealth;
         UpdateHealthBar();
@@ -125,6 +135,32 @@ public partial class Player : CharacterBody3D, ITemporaryUpgradeReceiver
         _visual = GetNode<Node3D>("Visual");
         _animationTree = GetNode<AnimationTree>("AnimationTree");
         _damageFlash = GetTree().CurrentScene.GetNodeOrNull<ColorRect>("HUD/PlayerDamageFlash");
+    }
+
+    private void ApplyMetaProgression(MetaProgressionState meta)
+    {
+        if (meta == null) return;
+        _runtimeState.IncreaseMaxHealth((uint)(meta.GetUpgradeLevel("max_health") * 10));
+        MaxHealth = _runtimeState.MaxHealth;
+        _moveSpeedMultiplier *= 1f + meta.GetUpgradeLevel("move_speed") * 0.03f;
+        _pickupRadiusMultiplier *= 1f + meta.GetUpgradeLevel("pickup_range") * 0.05f;
+        _experienceGainMultiplier *= 1f + meta.GetUpgradeLevel("xp_gain") * 0.05f;
+        PermanentDamageMultiplier += meta.GetUpgradeLevel("damage") * 0.05f;
+        PermanentLuckMultiplier += meta.GetUpgradeLevel("luck") * 0.05f;
+        PermanentExperienceMultiplier = _experienceGainMultiplier;
+    }
+
+    private void ApplyCharacterDefinition(CharacterDefinition character)
+    {
+        if (character == null) return;
+        MaxHealth = character.BaseHP;
+        _moveSpeedMultiplier *= character.BaseMoveSpeedMultiplier;
+        _pickupRadiusMultiplier *= character.BasePickupRangeMultiplier;
+        _experienceGainMultiplier *= character.BaseXPGainMultiplier;
+        PermanentDamageMultiplier *= character.BaseDamageMultiplier;
+        PermanentLuckMultiplier *= character.BaseLuckMultiplier;
+        if (character.StartingPassiveId == "passive_xp_gain") _experienceGainMultiplier *= 1.1f;
+        if (character.StartingPassiveId == "passive_pickup_range") _pickupRadiusMultiplier *= 1.1f;
     }
 
     public override void _PhysicsProcess(double delta)

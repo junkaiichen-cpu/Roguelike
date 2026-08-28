@@ -169,6 +169,20 @@ Complete Phase 4 only after manual confirmation of Bullet performance and Cross 
 - Victory awards 50 Faith and persists the meta state; Shop UI and purchase application remain the next product slice.
 - Android early validation found Godot editor validation and Java available, but no detected Android SDK/adb; no Android code was added.
 
+# Meta Shop Progress
+- Added a minimal results-screen Meta Shop using the existing RunResultsView.
+- Six permanent upgrades can be purchased with saved Faith using increasing costs; purchases persist to `user://faith_fight_meta.json` and affect the next run.
+
+# Core Gameplay Sprint
+- Added compact Reroll, Skip, and Banish controls to the existing UpgradeView; Reroll is limited to two uses per level-up and Banish lasts for the run.
+- Added Elite Treasure pickup with a lightweight BoxMesh; opening it awards Faith and XP through existing GameManager APIs.
+- Added Resource-driven Disciple, Warrior, and Prophet definitions plus next-run selection.
+
+# Product Menu Progress
+- Added `Scenes/MainMenu.tscn` and `Scripts/UI/MainMenu.cs` as the independent application entry menu.
+- Main Menu routes to gameplay, character selection, Shop, and a low-cost settings information view.
+- Character selection uses CharacterDefinition resources and persists the selected next-run character in the autoload during the session.
+
 # Fusion Foundation
 - Added data-driven FusionDefinition and four development recipes using WeaponId and required weapon levels.
 - GameManager exposes availability checks from WeaponRuntimeState; no fusion attack behavior or UI has been added yet.

@@ -110,6 +110,10 @@ internal class EnemyManager
             {
                 _gameManager.SpawnFaithSurge(enemy.GlobalPosition);
             }
+            if (enemy.IsElite && GD.Randf() < 0.15f)
+            {
+                _gameManager.SpawnTreasure(enemy.GlobalPosition);
+            }
     }
 
     private Vector3 GetRandomPos(bool useNormalSafety)

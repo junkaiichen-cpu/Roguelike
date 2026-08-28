@@ -56,6 +56,25 @@ Android-capable 15-minute Survivors-like foundation: the player grows stronger, 
 - Victory now awards and persists 50 Faith for the next-run progression loop.
 - DEFERRED: Meta Shop UI, Character System, Android touch/export, and final mobile layout remain gated on further PC product work.
 
+# Product Menu Progress
+- IN_PROGRESS: added independent `Scenes/MainMenu.tscn` as the application entry scene with PLAY, CHARACTERS, SHOP, and SETTINGS routes.
+- Character Select reads the three CharacterDefinition resources and changes the next-run GameManager selection without duplicating Player code.
+- Shop reads and writes the existing MetaProgressionState/MetaProgressionSave data and exposes six permanent upgrade purchases.
+- PC-oriented menu controls use anchored containers and large buttons; Android touch input and Safe Area runtime validation remain pending.
+
+# Meta Shop Progress
+- IN_PROGRESS: added a compact Meta Shop to the existing RunResultsView.
+- Shop displays Faith balance and six permanent upgrade rows: Damage, Max HP, XP Gain, Move Speed, Pickup Range, and Luck.
+- Purchases use MetaProgressionState's increasing cost, save immediately, and apply to the next Player run.
+- Victory reward remains 50 Faith and is saved before Results UI appears.
+- Android remains configuration-only because this machine has Java but no detected Android SDK or adb.
+
+# Core Gameplay Sprint
+- IN_PROGRESS: added bounded Reroll (2 per level-up), Skip, and per-run Banish actions to UpgradeView without pausing combat.
+- IN_PROGRESS: Elite Treasure pickup can award 25 Faith and 10 XP through existing persistence/progression paths.
+- IN_PROGRESS: CharacterDefinition resources and Results-page next-run character selection are active; standalone Main Menu remains the application entry.
+- KNOWN_ISSUE: full PC/Editor validation is still required for menu navigation, character stat feel, Treasure collection, and narrow-screen layout.
+
 # Current Gameplay Fixes
 - Root cause of missing ordinary enemies: Player `_Ready()` bound the HUD before the HUD child labels had entered the scene tree; `CombatHud.Refresh()` threw a null-reference exception and interrupted Player initialization before the run could spawn enemies.
 - Fixed by deferring CombatHud binding until its own `_Ready()` has initialized the labels; existing EnemyManager spawn timing, 360-degree placement, bounds, and elite branch remain unchanged.

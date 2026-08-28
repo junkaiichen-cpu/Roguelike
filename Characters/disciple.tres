@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CharacterDefinition"]
+
+[ext_resource type="Script" path="res://Scripts/Progression/CharacterDefinition.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+CharacterId = "disciple"
+DisplayName = "Disciple"
+Description = "Grows quickly through faith and experience."
+BaseHP = 180
+BaseDamageMultiplier = 1.0
+BaseMoveSpeedMultiplier = 1.0
+BasePickupRangeMultiplier = 1.0
+BaseXPGainMultiplier = 1.15
+BaseLuckMultiplier = 1.0
+StartingWeapon = 0
+StartingPassiveId = "passive_xp_gain"

@@ -125,7 +125,8 @@ public partial class Shooting : Node3D, IUpgradable, ITemporaryUpgradeReceiver
         if (body is not Enemy enemy) return;
         uint damage = (uint)Mathf.Clamp(
             Mathf.RoundToInt((Definition.BaseDamage + _damagesBonus) * _damageMultiplier
-                * (_player?.PassiveDamageMultiplier ?? 1f)),
+                * (_player?.PassiveDamageMultiplier ?? 1f)
+                * (_player?.PermanentDamageMultiplier ?? 1f)),
             1,
             int.MaxValue);
         enemy.TakeDamages(damage);

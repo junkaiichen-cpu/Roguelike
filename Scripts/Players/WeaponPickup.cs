@@ -2,6 +2,7 @@ using Godot;
 
 public enum WeaponPickupType
 {
+    None,
     Orb,
     Fire,
     SpiritWater,

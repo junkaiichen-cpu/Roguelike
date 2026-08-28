@@ -39,6 +39,11 @@ public partial class Player : CharacterBody3D, ITemporaryUpgradeReceiver
 
     public float TotalPickupRadius => 4.5f * _pickupRadiusMultiplier;
 
+    public float PassiveDamageMultiplier { get; private set; } = 1f;
+    public float PassiveCooldownMultiplier { get; private set; } = 1f;
+    public float PassiveAreaMultiplier { get; private set; } = 1f;
+    public float PassiveProjectileSizeMultiplier { get; private set; } = 1f;
+
     public bool ActivateWeapon(WeaponPickupType weaponType)
     {
         bool activated = weaponType switch
@@ -58,16 +63,12 @@ public partial class Player : CharacterBody3D, ITemporaryUpgradeReceiver
 
     private bool ActivateSpiritWater()
     {
-        bool activated = GetNodeOrNull<SpiritWater>("SpiritWater")?.Unlock() ?? false;
-        if (activated) BuildChanged?.Invoke(this);
-        return activated;
+        return GetNodeOrNull<SpiritWater>("SpiritWater")?.Unlock() ?? false;
     }
 
     private bool ActivateLifesteal()
     {
-        bool activated = GetNodeOrNull<LifestealAttack>("Lifesteal")?.Unlock() ?? false;
-        if (activated) BuildChanged?.Invoke(this);
-        return activated;
+        return GetNodeOrNull<LifestealAttack>("Lifesteal")?.Unlock() ?? false;
     }
 
     private bool ActivateUpgradeWeapon<TWeapon>(string nodePath, TemporaryUpgradeEffect effect)
@@ -258,6 +259,33 @@ public partial class Player : CharacterBody3D, ITemporaryUpgradeReceiver
 
         switch (upgrade.Effect)
         {
+            case TemporaryUpgradeEffect.PassiveMaxHealth:
+                _runtimeState.IncreaseMaxHealth((uint)Mathf.Max(1, Mathf.FloorToInt(upgrade.Amount)));
+                MaxHealth = _runtimeState.MaxHealth;
+                UpdateHealthBar();
+                HealthChanged?.Invoke(this);
+                return true;
+            case TemporaryUpgradeEffect.PassiveMoveSpeed:
+                _moveSpeedMultiplier *= 1f + upgrade.Amount / 100f;
+                return true;
+            case TemporaryUpgradeEffect.PassiveExperienceGain:
+                _experienceGainMultiplier *= 1f + upgrade.Amount / 100f;
+                return true;
+            case TemporaryUpgradeEffect.PassivePickupRange:
+                _pickupRadiusMultiplier *= 1f + upgrade.Amount / 100f;
+                return true;
+            case TemporaryUpgradeEffect.PassiveDamage:
+                PassiveDamageMultiplier *= 1f + upgrade.Amount / 100f;
+                return true;
+            case TemporaryUpgradeEffect.PassiveCooldown:
+                PassiveCooldownMultiplier *= 1f + upgrade.Amount / 100f;
+                return true;
+            case TemporaryUpgradeEffect.PassiveArea:
+                PassiveAreaMultiplier *= 1f + upgrade.Amount / 100f;
+                return true;
+            case TemporaryUpgradeEffect.PassiveProjectileSize:
+                PassiveProjectileSizeMultiplier *= 1f + upgrade.Amount / 100f;
+                return true;
             case TemporaryUpgradeEffect.PickupRadiusPercent:
                 _pickupRadiusMultiplier *= 1f + upgrade.Amount / 100f;
                 return true;

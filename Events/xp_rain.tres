@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EventDefinition"]
+
+[ext_resource type="Script" path="res://Scripts/Progression/EventDefinition.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "xp_rain"
+DisplayName = "XP Rain"
+Type = 0
+DurationSeconds = 10.0
+Intensity = 1

@@ -28,6 +28,7 @@ public partial class LifestealAttack : Node3D, IUpgradable, ITemporaryUpgradeRec
         _player = GetParent<Player>();
         _stealCooldown = GetNode<Timer>("Timer");
         _stealCooldown.WaitTime = 1f / TotalCooldown;
+        _stealCooldown.Stop();
         _area = GetNode<Area3D>("Area3D");
     }
 

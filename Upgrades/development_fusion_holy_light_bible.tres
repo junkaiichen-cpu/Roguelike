@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FusionDefinition"]
+
+[ext_resource type="Script" path="res://Scripts/Progression/FusionDefinition.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "fusion_holy_light_bible"
+WeaponAId = "HolyLight"
+WeaponARequiredLevel = 5
+WeaponBId = "Bible"
+WeaponBRequiredLevel = 5
+ResultWeaponId = "Radiant Gospel"
+DisplayName = "Radiant Gospel"

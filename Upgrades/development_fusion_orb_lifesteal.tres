@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FusionDefinition"]
+
+[ext_resource type="Script" path="res://Scripts/Progression/FusionDefinition.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "fusion_orb_lifesteal"
+WeaponAId = "Orb"
+WeaponARequiredLevel = 5
+WeaponBId = "Lifesteal"
+WeaponBRequiredLevel = 5
+ResultWeaponId = "Covenant Guard"
+DisplayName = "Covenant Guard"

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public partial class CombatHud : Control
 {
     private readonly Dictionary<string, Label> _weaponRows = new();
+    private readonly Dictionary<string, Label> _passiveRows = new();
     private Player _player;
     private Label _healthLabel;
     private Label _levelLabel;
@@ -24,6 +25,12 @@ public partial class CombatHud : Control
             {
                 _weaponRows[row.Name] = row;
             }
+        }
+
+        Control passiveBar = GetNodeOrNull<Control>("PassiveBar");
+        foreach (Node child in passiveBar?.GetChildren() ?? [])
+        {
+            if (child is Label row && !string.IsNullOrEmpty(row.Name)) _passiveRows[row.Name] = row;
         }
 
         _isReady = true;
@@ -82,9 +89,31 @@ public partial class CombatHud : Control
         SetWeapon("SpiritWater", $"💧 {GetWeaponLevel("SpiritWater")}", spiritWater?.IsUnlocked == true);
         LifestealAttack lifesteal = player.GetNodeOrNull<LifestealAttack>("Lifesteal");
         SetWeapon("Lifesteal", $"♥ {GetWeaponLevel("Lifesteal")}", lifesteal?.IsUnlocked == true);
+        SetWeapon("FusionRadiant", $"✦📖 {GetFusionLevel("fusion_holy_light_bible")}", GetFusionLevel("fusion_holy_light_bible") > 0);
+        SetWeapon("FusionSpring", $"🔥💧 {GetFusionLevel("fusion_fire_spirit_water")}", GetFusionLevel("fusion_fire_spirit_water") > 0);
+        SetWeapon("FusionGuard", $"●♥ {GetFusionLevel("fusion_orb_lifesteal")}", GetFusionLevel("fusion_orb_lifesteal") > 0);
+        SetWeapon("FusionThunder", $"✝⚡ {GetFusionLevel("fusion_cross_lightning")}", GetFusionLevel("fusion_cross_lightning") > 0);
+        SetPassive("Damage", "⚔", "passive_damage");
+        SetPassive("MaxHealth", "♥", "passive_max_health");
+        SetPassive("MoveSpeed", "➤", "passive_move_speed");
+        SetPassive("Cooldown", "◷", "passive_cooldown");
+        SetPassive("Area", "◎", "passive_area");
+        SetPassive("ProjectileSize", "◈", "passive_projectile_size");
+        SetPassive("ExperienceGain", "✧", "passive_xp_gain");
+        SetPassive("PickupRange", "⌾", "passive_pickup_range");
     }
 
     private int GetWeaponLevel(string id) => _gameManager?.GetWeaponLevel(id) ?? 1;
+
+    private int GetFusionLevel(string id) => _gameManager?.GetFusionLevel(id) ?? 0;
+
+    private void SetPassive(string rowId, string icon, string passiveId)
+    {
+        if (!_passiveRows.TryGetValue(rowId, out Label row)) return;
+        int level = _gameManager?.GetPassiveLevel(passiveId) ?? 0;
+        row.Text = $"{icon} {level}";
+        row.Visible = level > 0;
+    }
 
     private void SetWeapon(string id, string text, bool visible)
     {

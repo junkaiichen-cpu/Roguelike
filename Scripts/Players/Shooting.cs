@@ -1,9 +1,11 @@
 
 
 using Godot;
+using System.Collections.Generic;
 
 public partial class Shooting : Node3D, IUpgradable, ITemporaryUpgradeReceiver
 {
+    private const int ProjectilePoolCapacity = 64;
     [Export]
     public ProjectileWeaponDefinition Definition { get; set; }
 
@@ -13,7 +15,8 @@ public partial class Shooting : Node3D, IUpgradable, ITemporaryUpgradeReceiver
     private float _attackSpeedBonus = 0;
     private float _attackSpeedMultiplier = 1f;
 
-    public float TotalAttackSpeed => (Definition.AttacksPerSecond + _attackSpeedBonus) * _attackSpeedMultiplier;
+    public float TotalAttackSpeed => (Definition.AttacksPerSecond + _attackSpeedBonus) * _attackSpeedMultiplier
+        * _player?.PassiveCooldownMultiplier ?? (Definition.AttacksPerSecond + _attackSpeedBonus) * _attackSpeedMultiplier;
 
     private float _bulletSpeedBonus = 0;
 
@@ -30,12 +33,14 @@ public partial class Shooting : Node3D, IUpgradable, ITemporaryUpgradeReceiver
 
     private float _projectileSizeBonus;
 
-    public float TotalProjectileSizeMultiplier => Definition.ProjectileSizeMultiplier + _projectileSizeBonus;
+    public float TotalProjectileSizeMultiplier => (Definition.ProjectileSizeMultiplier + _projectileSizeBonus)
+        * (_player?.PassiveProjectileSizeMultiplier ?? 1f);
 
     private GameManager _gameManager;
     private Player _player;
 
     private Timer _timer;
+    private readonly List<ProjectileLifetime> _projectilePool = new();
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -82,21 +87,45 @@ public partial class Shooting : Node3D, IUpgradable, ITemporaryUpgradeReceiver
                 ? 0
                 : (float)projectileIndex / (TotalProjectileCount - 1) - 0.5f;
             Vector3 projectileDirection = direction.Rotated(Vector3.Up, Mathf.DegToRad(spreadRatio * TotalSpreadDegrees));
-            var bullet = Definition.ProjectileScene.Instantiate<RigidBody3D>();
+            ProjectileLifetime bullet = GetProjectile();
+            if (bullet == null) continue;
+            bullet.Activate();
             bullet.Scale *= TotalProjectileSizeMultiplier;
             bullet.LinearVelocity = TotalBulletSpeed * projectileDirection;
-            bullet.BodyEntered += (body) => OnBodyEntered(bullet, body);
-            GetTree().CurrentScene.AddChild(bullet);
             bullet.GlobalPosition = GlobalPosition + new Vector3(0, 0.5f, 0);
         }
     }
 
-    private void OnBodyEntered(RigidBody3D bullet, Node body)
+    private ProjectileLifetime GetProjectile()
     {
-        bullet.QueueFree();
+        foreach (ProjectileLifetime projectile in _projectilePool)
+        {
+            if (!projectile.IsActive) return projectile;
+        }
+
+        if (_projectilePool.Count >= ProjectilePoolCapacity) return null;
+
+        ProjectileLifetime created = Definition.ProjectileScene.Instantiate<ProjectileLifetime>();
+        GetTree().CurrentScene.AddChild(created);
+        created.BodyEntered += body => OnBodyEntered(created, body);
+        created.Expired += ReturnProjectile;
+        _projectilePool.Add(created);
+        return created;
+    }
+
+    private void ReturnProjectile(ProjectileLifetime projectile)
+    {
+        projectile.Deactivate();
+    }
+
+    private void OnBodyEntered(ProjectileLifetime bullet, Node body)
+    {
+        if (!bullet.IsActive) return;
+        bullet.Deactivate();
         if (body is not Enemy enemy) return;
         uint damage = (uint)Mathf.Clamp(
-            Mathf.RoundToInt((Definition.BaseDamage + _damagesBonus) * _damageMultiplier),
+            Mathf.RoundToInt((Definition.BaseDamage + _damagesBonus) * _damageMultiplier
+                * (_player?.PassiveDamageMultiplier ?? 1f)),
             1,
             int.MaxValue);
         enemy.TakeDamages(damage);

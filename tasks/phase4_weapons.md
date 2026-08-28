@@ -133,12 +133,53 @@ Complete Phase 4 only after manual confirmation of Bullet performance and Cross 
 - Bottom inventory now uses a permanent horizontal icon-plus-level layout with no weapon names or combat-stat text.
 - Weapon levels are derived from actual GameManager upgrade application counts; pickup starts at level 1 and subsequent upgrades increment the displayed level.
 
+# P0 Core Loop Stabilization
+- Upgrade choices now leave the SceneTree and RunPressureState running; `_isVotePhase` suppresses only new spawn attempts while the three choices are visible.
+- Upgrade cards are constrained to a compact bottom layout.
+- Faith Surge and XP vacuum were statically traced through the existing `experience_pickups` group, `StartVacuum`, XP movement, and `Player.CollectExperience`; headless startup produced no exception, while pickup activation remains a manual runtime check.
+- Confirmed only Shooting/Holy Light is active by default; all other weapon nodes remain dormant until map pickup activation.
+- Unlock effects are explicitly rejected from normal upgrade choice availability while existing compatibility receivers remain intact.
+
+# P1 Weapon State and Faith Surge Fix
+- Faith Surge now keeps a short GameManager vacuum window so existing, already-attracted, and newly spawned XP pickups all move toward the player at vacuum speed.
+- Added pure `WeaponRuntimeState` for weapon ID, level, unlock state, and upgrade application count.
+- GameManager now owns/reset/synchronizes weapon states; HUD levels and upgrade filtering use that shared state while existing weapon attack logic remains unchanged.
+- Manual Faith Surge interaction remains required; no Godot runtime interaction was available in headless validation.
+
+# P1 Projectile Pool
+- Shooting reuses a bounded pool of 64 existing ProjectileLifetime bullets and connects collision once per pooled instance.
+- Pool reset preserves the existing projectile scene, speed, damage, visual, collision, and lifetime behavior while avoiding repeated Instantiate/Free during normal firing.
+
+# Fusion Runtime
+- Four data-driven recipes now activate in runtime when both source weapon levels meet their requirements.
+- Fusion deactivates source weapon states, stops source weapon nodes, activates a shared FusionAttack, updates the HUD, and shows one Evolution feedback message.
+- Manual Fusion behavior and presentation verification remain in progress; Fusion-specific upgrade cards are deferred.
+- Fusion state registration is refreshed after Fusion resources load to cover the Player/GameManager initialization order.
+- Fusion inherits source levels and aggregate upgrade contribution before source deactivation; this changes Fusion damage, range, cadence, and selected target counts.
+- Lightning main and chain targets now receive staggered short-lived beam and hit feedback.
+- Damage labels keep the existing pool with a 50-label concurrent cap and larger text.
+
+# Content Expansion
+- Added eight data-driven PassiveDefinition resources and PassiveRuntimeState; passives are selectable through the existing upgrade flow and affect real player/weapon properties.
+- Added six lightweight EventDefinition resources and EventRuntimeState; timed events directly affect XP, enemy pressure, healing, progression, and vacuum without complex effects.
+- Manual pacing verification remains required.
+
+# Product Systems Handoff
+- Added versioned MetaProgressionState and local JSON Save/Load using `user://faith_fight_meta.json`.
+- Victory awards 50 Faith and persists the meta state; Shop UI and purchase application remain the next product slice.
+- Android early validation found Godot editor validation and Java available, but no detected Android SDK/adb; no Android code was added.
+
+# Fusion Foundation
+- Added data-driven FusionDefinition and four development recipes using WeaponId and required weapon levels.
+- GameManager exposes availability checks from WeaponRuntimeState; no fusion attack behavior or UI has been added yet.
+
 # Gameplay Feel Pass
 - Removed all map-weapon Unlock entries from the active temporary upgrade array; Cross, Lightning, Bible, Orb, Fire, Spirit Water, and Lifesteal now unlock only through their map pickups.
 - Elite deaths award one merged XP pickup worth approximately 20 normal XP and can drop one Faith Surge pickup at 15% probability.
 - Faith Surge directly accelerates every existing XP pickup toward the player.
 - Ordinary enemy spawning now uses bounded time-based bursts of 1/2/3/4 while Elite spawning remains a separate roll and playable bounds are unchanged.
 - Boss death now performs a short cleanup phase before the Victory UI appears.
+- Elite hit numbers are larger and gold-colored; Faith Surge pickup gives a short gold screen flash while existing XP vacuum runs.
 
 # Known Issues
 - Manual gameplay verification remains required for Burst density, Faith Surge pickup/vacuum feel, Elite behavior, and Victory cleanup presentation.

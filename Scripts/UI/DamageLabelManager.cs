@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public partial class DamageLabelManager : CombatHud
 {
     public const uint InitialQueue = 50;
+    private const int MaxDisplayedLabels = 50;
 
     private readonly Queue<Label> _queue = new();
 
@@ -50,7 +51,7 @@ public partial class DamageLabelManager : CombatHud
         label.LabelSettings = new LabelSettings()
         {
             FontColor = new Color(1, 0, 0),
-            FontSize = 30,
+            FontSize = 34,
             OutlineSize = 4,
             OutlineColor = new Color(0, 0, 0),
         };
@@ -69,8 +70,13 @@ public partial class DamageLabelManager : CombatHud
 
     public void OnEnemyHit(Enemy enemy, int damages)
     {
+        if (_displayedLabels.Count >= MaxDisplayedLabels) return;
         var label = GetLabel();
         label.Text = damages.ToString();
+        label.LabelSettings.FontColor = enemy.IsElite
+            ? new Color(1f, 0.78f, 0.2f)
+            : new Color(1f, 0.2f, 0.16f);
+        label.Scale = enemy.IsElite ? Vector2.One * 1.25f : Vector2.One;
 
         Vector2 labelPos = _camera.UnprojectPosition(enemy.GlobalPosition);
         labelPos.X -= label.Size.X / 2;

@@ -87,6 +87,7 @@ public partial class LightningAttack : Node3D, ITemporaryUpgradeReceiver
         foreach (Enemy enemy in targets.Take(TotalCount))
         {
             enemy.TakeDamages(BaseDamage + _damageBonus);
+            enemy.PlayLightningHitFeedback();
         }
 
         _strikeVisual.GlobalPosition = targets[0].GlobalPosition + new Vector3(0, 0.9f, 0);
@@ -107,10 +108,17 @@ public partial class LightningAttack : Node3D, ITemporaryUpgradeReceiver
             }
 
             ShowChain(chain, targets[index].GlobalPosition, targets[index + 1].GlobalPosition);
-            chain.Visible = true;
+            chain.Visible = false;
+            Tween chainTween = CreateTween();
+            chainTween.TweenInterval(index * 0.045f);
+            chainTween.TweenCallback(Callable.From(() =>
+            {
+                chain.Visible = true;
+                targets[index + 1].PlayLightningHitFeedback();
+            }));
+            chainTween.TweenInterval(0.13f);
+            chainTween.TweenCallback(Callable.From(() => chain.Visible = false));
         }
-
-        GetTree().CreateTimer(0.16).Timeout += HideChains;
     }
 
     public bool TryApplyTemporaryUpgrade(TemporaryUpgradeDefinition upgrade)

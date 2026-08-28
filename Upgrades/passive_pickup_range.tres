@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="PassiveDefinition"]
+
+[ext_resource type="Script" path="res://Scripts/Progression/PassiveDefinition.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "passive_pickup_range"
+DisplayName = "Gathering Light"
+Description = "Increase pickup range by 20%."
+Effect = 7
+Amount = 20.0
+MaxApplications = 5

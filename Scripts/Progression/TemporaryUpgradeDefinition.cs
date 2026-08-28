@@ -44,6 +44,17 @@ public enum TemporaryUpgradeEffect
     LifestealCooldown,
     UnlockLifesteal,
     LightningChainCount,
+    FusionDamage,
+    FusionArea,
+    FusionFrequency,
+    PassiveDamage,
+    PassiveMaxHealth,
+    PassiveMoveSpeed,
+    PassiveCooldown,
+    PassiveArea,
+    PassiveProjectileSize,
+    PassiveExperienceGain,
+    PassivePickupRange,
 }
 
 [GlobalClass]

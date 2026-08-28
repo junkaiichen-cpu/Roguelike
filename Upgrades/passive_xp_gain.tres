@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="PassiveDefinition"]
+
+[ext_resource type="Script" path="res://Scripts/Progression/PassiveDefinition.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "passive_xp_gain"
+DisplayName = "Wisdom"
+Description = "Increase XP gained by 15%."
+Effect = 6
+Amount = 15.0
+MaxApplications = 5

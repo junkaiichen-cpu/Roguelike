@@ -110,6 +110,67 @@ grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_weapons")
 
+[node name="PassiveBar" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -88.0
+offset_bottom = -60.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Damage" type="Label" parent="PassiveBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "⚔ 1"
+visible = false
+
+[node name="MaxHealth" type="Label" parent="PassiveBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "♥ 1"
+visible = false
+
+[node name="MoveSpeed" type="Label" parent="PassiveBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "➤ 1"
+visible = false
+
+[node name="Cooldown" type="Label" parent="PassiveBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "◷ 1"
+visible = false
+
+[node name="Area" type="Label" parent="PassiveBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "◎ 1"
+visible = false
+
+[node name="ProjectileSize" type="Label" parent="PassiveBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "◈ 1"
+visible = false
+
+[node name="ExperienceGain" type="Label" parent="PassiveBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "✧ 1"
+visible = false
+
+[node name="PickupRange" type="Label" parent="PassiveBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "⌾ 1"
+visible = false
+
 [node name="HolyLight" type="Label" parent="WeaponBar"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
@@ -165,6 +226,34 @@ text = "♥ 1"
 visible = false
 horizontal_alignment = 1
 
+[node name="FusionRadiant" type="Label" parent="WeaponBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "✦📖 1"
+visible = false
+horizontal_alignment = 1
+
+[node name="FusionSpring" type="Label" parent="WeaponBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "🔥💧 1"
+visible = false
+horizontal_alignment = 1
+
+[node name="FusionGuard" type="Label" parent="WeaponBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "●♥ 1"
+visible = false
+horizontal_alignment = 1
+
+[node name="FusionThunder" type="Label" parent="WeaponBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "✝⚡ 1"
+visible = false
+horizontal_alignment = 1
+
 [node name="GameTime" type="Label" parent="."]
 layout_mode = 0
 offset_left = 10.0
@@ -211,12 +300,14 @@ color = Color(0.9, 0.08, 0.04, 0)
 [node name="UpgradeContainer" type="HBoxContainer" parent="."]
 z_index = 1
 layout_mode = 1
-anchors_preset = -1
+anchors_preset = 12
+anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 27.0
+offset_top = -220.0
+offset_bottom = -70.0
 grow_horizontal = 2
-grow_vertical = 2
+grow_vertical = 0
 alignment = 1
 script = ExtResource("2_esggw")
 

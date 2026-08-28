@@ -13,7 +13,7 @@ public sealed class PlayerRuntimeState
         CurrentHealth = maxHealth;
     }
 
-    public uint MaxHealth { get; }
+    public uint MaxHealth { get; private set; }
 
     public uint CurrentHealth { get; private set; }
 
@@ -42,5 +42,11 @@ public sealed class PlayerRuntimeState
         uint restoredHealth = health > missingHealth ? missingHealth : health;
         CurrentHealth += restoredHealth;
         return restoredHealth;
+    }
+
+    public void IncreaseMaxHealth(uint amount)
+    {
+        MaxHealth = uint.MaxValue - MaxHealth < amount ? uint.MaxValue : MaxHealth + amount;
+        CurrentHealth = MaxHealth;
     }
 }

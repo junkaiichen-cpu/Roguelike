@@ -1,7 +1,6 @@
 using Godot;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 public partial class FloatingSphereAttack : Node3D, IUpgradable, ITemporaryUpgradeReceiver
 {
@@ -28,6 +27,7 @@ public partial class FloatingSphereAttack : Node3D, IUpgradable, ITemporaryUpgra
     private PackedScene _spherePrefab;
     private List<Area3D> _spheres = new();
     private Timer _timer;
+    private Timer _recoveryTimer;
     private bool _unlocked;
 
     public bool IsUnlocked => _unlocked;
@@ -41,6 +41,10 @@ public partial class FloatingSphereAttack : Node3D, IUpgradable, ITemporaryUpgra
         _timer = GetNode<Timer>("Timer");
         _timer.WaitTime = Duration;
         _timer.Timeout += OnAttackEnd;
+        _timer.Stop();
+        _recoveryTimer = new Timer { OneShot = true, WaitTime = 2d };
+        _recoveryTimer.Timeout += ResumeAttack;
+        AddChild(_recoveryTimer);
         HideSpheres();
     }
 
@@ -74,6 +78,7 @@ public partial class FloatingSphereAttack : Node3D, IUpgradable, ITemporaryUpgra
         area.BodyEntered += body => OnBodyEntered(area, body);
         AddChild(area);
         _spheres.Add(area);
+        area.Monitoring = false;
 
         RepositionSpheres();
         area.Hide();
@@ -91,10 +96,15 @@ public partial class FloatingSphereAttack : Node3D, IUpgradable, ITemporaryUpgra
         }
     }
 
-    private async void OnAttackEnd()
+    private void OnAttackEnd()
     {
         HideSpheres();
-        await Task.Delay(2000);
+        _recoveryTimer.Start();
+    }
+
+    private void ResumeAttack()
+    {
+        if (!_unlocked) return;
         _timer.Start();
         ShowSpheres();
     }
@@ -106,6 +116,7 @@ public partial class FloatingSphereAttack : Node3D, IUpgradable, ITemporaryUpgra
             area.GetNode<GpuParticles3D>("Particles").Restart();
             area.GetNode<GpuParticles3D>("Particles").Emitting = true;
             area.SetPhysicsProcess(true);
+            area.Monitoring = true;
             area.Show();
         }
     }
@@ -125,6 +136,7 @@ public partial class FloatingSphereAttack : Node3D, IUpgradable, ITemporaryUpgra
         {
             area.GetNode<GpuParticles3D>("Particles").Emitting = false;
             area.SetPhysicsProcess(false);
+            area.Monitoring = false;
             area.Hide();
         }
     }

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="TemporaryUpgradeDefinition"]
+
+[ext_resource type="Script" path="res://Scripts/Progression/TemporaryUpgradeDefinition.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "fusion_damage"
+DisplayName = "Fusion Damage"
+Description = "Increase the fused weapon's impact."
+Effect = 42
+Amount = 8.0
+MaxApplications = 8

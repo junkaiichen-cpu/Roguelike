@@ -20,7 +20,7 @@ public partial class CrossAttack : Node3D, ITemporaryUpgradeReceiver
     private MeshInstance3D _horizontal;
     private MeshInstance3D _vertical;
 
-    public float TotalRadius => Radius + _radiusBonus;
+    public float TotalRadius => (Radius + _radiusBonus) * (GetParent<Player>()?.PassiveAreaMultiplier ?? 1f);
 
     public bool IsUnlocked => _unlocked;
 
@@ -37,6 +37,7 @@ public partial class CrossAttack : Node3D, ITemporaryUpgradeReceiver
             Shape = new SphereShape3D { Radius = TotalRadius },
         });
         AddChild(_area);
+        _area.Monitoring = false;
 
         _horizontal = CreateBeam();
         _vertical = CreateBeam();
@@ -108,6 +109,7 @@ public partial class CrossAttack : Node3D, ITemporaryUpgradeReceiver
         {
             case TemporaryUpgradeEffect.UnlockCross:
                 _unlocked = true;
+                _area.Monitoring = true;
                 _timer.Start();
                 return true;
             case TemporaryUpgradeEffect.CrossDamage:

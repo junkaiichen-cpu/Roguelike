@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="PassiveDefinition"]
+
+[ext_resource type="Script" path="res://Scripts/Progression/PassiveDefinition.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "passive_cooldown"
+DisplayName = "Quickened Spirit"
+Description = "Increase attack frequency by 8%."
+Effect = 3
+Amount = 8.0
+MaxApplications = 5

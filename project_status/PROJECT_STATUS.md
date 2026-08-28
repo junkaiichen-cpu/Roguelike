@@ -49,6 +49,13 @@ Android-capable 15-minute Survivors-like foundation: the player grows stronger, 
 - IN_PROGRESS: automated validation pending after the current gameplay fixes.
 - KNOWN_ISSUE: manual Godot playtest remains required for pickup collection, Fire cycling, chain readability, elite ranged telegraphs, HUD placement, and five-minute pacing.
 
+# Product Systems
+- IN_PROGRESS: Android Early Validation completed at configuration/environment level. Godot 4.4.1 editor headless validation passed; Java is available, but `adb` and Android SDK paths were not detected, so APK export was not attempted.
+- `project.godot` currently uses a 1280x720 viewport with viewport stretch and 30 FPS; input is keyboard-only and no touch actions or Safe Area layout system are present yet.
+- IN_PROGRESS: added MetaProgressionState and local JSON Save/Load under `user://faith_fight_meta.json` with save version, Faith currency, permanent upgrade levels, and unlock IDs.
+- Victory now awards and persists 50 Faith for the next-run progression loop.
+- DEFERRED: Meta Shop UI, Character System, Android touch/export, and final mobile layout remain gated on further PC product work.
+
 # Current Gameplay Fixes
 - Root cause of missing ordinary enemies: Player `_Ready()` bound the HUD before the HUD child labels had entered the scene tree; `CombatHud.Refresh()` threw a null-reference exception and interrupted Player initialization before the run could spawn enemies.
 - Fixed by deferring CombatHud binding until its own `_Ready()` has initialized the labels; existing EnemyManager spawn timing, 360-degree placement, bounds, and elite branch remain unchanged.
@@ -59,6 +66,52 @@ Android-capable 15-minute Survivors-like foundation: the player grows stronger, 
 - IN_PROGRESS: final build/test/diff validation pending.
 - KNOWN_ISSUE: manual gameplay confirmation remains required for ordinary spawn visibility, pickup activation, weapon level pop, and mobile HUD spacing.
 
+# P0 Core Loop Stabilization
+- DONE (code): upgrade choices no longer pause the SceneTree or RunPressureState; `_isVotePhase` only suppresses new enemy spawning while cards are displayed.
+- DONE (code): UpgradeContainer is constrained to a compact bottom region so the combat field remains visible.
+- VERIFIED (static/runtime startup): XP scenes are in `experience_pickups`; FaithSurgePickup calls GameManager vacuum activation; existing XP pickups enter vacuum movement and call Player.CollectExperience. Headless startup produced no gameplay exceptions, but a real Faith Surge pickup remains a manual check.
+- VERIFIED (static): only Shooting/Holy Light is an active default automatic weapon; other weapon nodes are locked/dormant until pickup activation.
+- DONE (code): all Unlock effects are explicitly excluded from normal three-choice availability while compatibility handlers remain in Player and weapon receivers.
+
+# P1 Weapon State and Faith Surge Fix
+- DONE (code): Faith Surge now maintains a short vacuum window; existing XP can switch from normal attraction to vacuum speed, and XP spawned during the window is also captured.
+- VERIFIED (static): Faith Surge uses Area3D body detection, XP scenes belong to `experience_pickups`, and vacuumed XP calls `Player.CollectExperience`; headless startup produced no runtime exception, but pickup interaction still needs manual playtest.
+- DONE (code): added pure `WeaponRuntimeState` with `WeaponId`, `Level`, `IsUnlocked`, and `UpgradeApplications`.
+- DONE (code): GameManager owns and resets the weapon state registry, synchronizes Pickup unlocks, records upgrade levels, supplies HUD levels, and uses unified unlock state for upgrade filtering.
+- DEFERRED: Fusion, projectile pooling, XP indexing, health-bar reuse, Orb Timer replacement, and Android work remain outside this pass.
+
+# P1 Projectile Pool
+- IN_PROGRESS (code): Shooting now reuses up to 64 existing ProjectileLifetime bullets; inactive bullets are hidden, collision-disabled, frozen, and reset on activation.
+- Pool exhaustion skips additional shots rather than allowing unbounded projectile node growth; projectile speed, damage, collision, and lifetime behavior remain unchanged.
+- Remaining: final automated validation and future runtime performance measurement.
+
+# Fusion Runtime
+- IN_PROGRESS (code): eligible Fusion recipes now deactivate both source WeaponRuntimeState entries, stop their source weapon nodes, activate a FusionRuntimeState, and add one shared FusionAttack runtime node.
+- Implemented shared lightweight behavior for four recipes: Radiant Gospel, Living Spring, Covenant Guard, and Thunder Cross.
+- Fusion HUD rows and one-shot Evolution text feedback are connected.
+- KNOWN_ISSUE: Fusion upgrades, complete visual polish, and PC/Editor manual gameplay verification remain.
+- Fixed Fusion state registration after resource loading so early Player initialization cannot leave the Fusion registry empty.
+- Fusion now captures source weapon level and upgrade contribution before deactivation; contribution affects Fusion damage, radius, cadence, and Radiant Gospel target count.
+- Lightning chain feedback now staggers reusable beam meshes and calls target hit feedback for each jump.
+- Damage numbers remain pooled and are capped at 50 concurrently with larger readable text.
+
+# Phase A Passive System
+- IN_PROGRESS (code): added PassiveDefinition and PassiveRuntimeState.
+- Added eight active passives: Damage, MaxHealth, MoveSpeed, Cooldown, Area, ProjectileSize, ExperienceGain, and PickupRange.
+- Passives enter the existing three-choice upgrade flow, change Player/Shooting/Area behavior, record level/value state, and display in the HUD.
+
+# Phase B Random Events
+- IN_PROGRESS (code): added lightweight EventDefinition and EventRuntimeState.
+- Added XP Rain, Elite Horde, Faith Surge, Holy Ground, Angel Blessing, and Demon Wave resources with timed GameManager triggers.
+- Events use existing XP, enemy, healing, progression, and vacuum paths and keep bounded spawn intensity.
+- KNOWN_ISSUE: PC/Editor playtest and pacing/balance tuning remain before marking these phases complete.
+
+# Fusion Foundation
+- IN_PROGRESS (data only): added `FusionDefinition` with two required weapon IDs/levels and a result weapon ID.
+- Added four development recipes: Holy Light + Bible, Fire + Spirit Water, Orb + Lifesteal, and Cross + Lightning.
+- GameManager now loads the recipes and exposes `CanFuse` / `GetAvailableFusions` using unified WeaponRuntimeState.
+- Full fusion result weapon behavior, evolution visuals, and fusion UI remain deferred.
+
 # Current Gameplay Pass
 - DONE (code): Map-only weapon unlock rule is enforced by removing all weapon Unlock resources from the active random upgrade array; map pickups remain the activation source.
 - DONE (code): Elite deaths create one merged XP pickup worth approximately 20 normal XP and have a 15% Faith Surge drop chance.
@@ -66,6 +119,7 @@ Android-capable 15-minute Survivors-like foundation: the player grows stronger, 
 - DONE (code): Enemy spawn cycles use bounded time-based bursts of 1, 2, 3, or 4 ordinary enemies while preserving existing bounds and 360-degree placement; Elite rolls remain separate.
 - DONE (code): Boss victory clears enemies, XP, Faith Surge, and projectile bodies, stops player combat child nodes, then delays Victory UI briefly.
 - IN_PROGRESS: manual playtest is still required for Elite readability/behavior, Faith Surge feel, five-minute density, and Victory cleanup presentation.
+- Elite damage numbers now use larger gold feedback; Faith Surge pickup now triggers a short gold screen flash in addition to the existing vacuum.
 
 # Phase 3 Changes
 - Reduced the Player's development XP thresholds to `4 + 4 per level`.

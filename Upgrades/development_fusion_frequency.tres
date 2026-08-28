@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="TemporaryUpgradeDefinition"]
+
+[ext_resource type="Script" path="res://Scripts/Progression/TemporaryUpgradeDefinition.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "fusion_frequency"
+DisplayName = "Fusion Frequency"
+Description = "Trigger the fused weapon more often."
+Effect = 44
+Amount = 0.15
+MaxApplications = 6

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EventDefinition"]
+
+[ext_resource type="Script" path="res://Scripts/Progression/EventDefinition.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "holy_ground"
+DisplayName = "Holy Ground"
+Type = 3
+DurationSeconds = 15.0
+Intensity = 1

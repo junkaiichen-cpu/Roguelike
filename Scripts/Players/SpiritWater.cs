@@ -48,6 +48,8 @@ public partial class SpiritWater : Node3D, IUpgradable, ITemporaryUpgradeReceive
 
         _damageCooldown = GetNode<Timer>("DamageCooldown");
         _damageCooldown.Timeout += OnDamageReady;
+        _projectileCooldown.Stop();
+        _damageCooldown.Stop();
     }
 
     public bool Unlock()

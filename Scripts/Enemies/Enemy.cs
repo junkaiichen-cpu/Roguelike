@@ -23,6 +23,8 @@ public enum EliteType
 
 public partial class Enemy : RigidBody3D
 {
+    private const int MaxVisibleHealthBars = 48;
+    private static int _visibleHealthBarCount;
     public const uint DefaultMaxHealth = 10;
     private const double HitFeedbackDurationSeconds = 0.1d;
     private const double SpawnFeedbackDurationSeconds = 0.08d;
@@ -190,6 +192,7 @@ public partial class Enemy : RigidBody3D
 
         _lifebar?.QueueFree();
         _healthBar?.QueueFree();
+        if (_healthBar != null) _visibleHealthBarCount = Math.Max(0, _visibleHealthBarCount - 1);
         _username?.QueueFree();
     }
 
@@ -289,6 +292,14 @@ public partial class Enemy : RigidBody3D
         Die();
     }
 
+    internal void PlayLightningHitFeedback()
+    {
+        if (IsDead) return;
+        ShowHitFeedback();
+        Scale = Scale * 1.08f;
+        CreateTween().TweenProperty(this, "scale", Scale / 1.08f, 0.1f);
+    }
+
     internal void PlaySpawnFeedback()
     {
         Vector3 targetScale = Scale;
@@ -327,6 +338,7 @@ public partial class Enemy : RigidBody3D
     {
         if (_healthBar == null)
         {
+            if (_visibleHealthBarCount >= MaxVisibleHealthBars) return;
             _healthBar = new ProgressBar
             {
                 MaxValue = MaxHealth,
@@ -343,6 +355,7 @@ public partial class Enemy : RigidBody3D
                 BgColor = new Color(0.68f, 0.035f, 0.045f, 1f),
             });
             GetNode<Control>("../HUD").AddChild(_healthBar);
+            _visibleHealthBarCount++;
         }
 
         _healthBar.Value = CurrentHealth;

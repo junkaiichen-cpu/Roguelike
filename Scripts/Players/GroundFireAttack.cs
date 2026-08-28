@@ -23,13 +23,14 @@ public partial class GroundFireAttack : Node3D, ITemporaryUpgradeReceiver
     public override void _Ready()
     {
         _area = new Area3D { CollisionLayer = 0, CollisionMask = 2, Monitoring = true };
-        _area.AddChild(new CollisionShape3D { Shape = new CylinderShape3D { Radius = Radius, Height = 0.2f } });
+        _area.AddChild(new CollisionShape3D { Shape = new CylinderShape3D { Radius = GetAreaRadius(), Height = 0.2f } });
         AddChild(_area);
+        _area.Monitoring = false;
         _visual = new MeshInstance3D
         {
             Visible = false,
             CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
-            Mesh = new CylinderMesh { TopRadius = Radius, BottomRadius = Radius, Height = 0.08f },
+            Mesh = new CylinderMesh { TopRadius = GetAreaRadius(), BottomRadius = GetAreaRadius(), Height = 0.08f },
             MaterialOverride = new StandardMaterial3D
             {
                 ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
@@ -54,6 +55,7 @@ public partial class GroundFireAttack : Node3D, ITemporaryUpgradeReceiver
     {
         if (_unlocked) return false;
         _unlocked = true;
+        _area.Monitoring = true;
         BeginFire();
         return true;
     }
@@ -98,9 +100,9 @@ public partial class GroundFireAttack : Node3D, ITemporaryUpgradeReceiver
                 _damageBonus += (uint)Mathf.Max(1, Mathf.FloorToInt(upgrade.Amount)); return true;
             case TemporaryUpgradeEffect.FireArea:
                 _radiusBonus += upgrade.Amount;
-                (_area.GetChild(0) as CollisionShape3D).Shape = new CylinderShape3D { Radius = Radius + _radiusBonus, Height = 0.2f };
-                (_visual.Mesh as CylinderMesh).TopRadius = Radius + _radiusBonus;
-                (_visual.Mesh as CylinderMesh).BottomRadius = Radius + _radiusBonus;
+                (_area.GetChild(0) as CollisionShape3D).Shape = new CylinderShape3D { Radius = GetAreaRadius(), Height = 0.2f };
+                (_visual.Mesh as CylinderMesh).TopRadius = GetAreaRadius();
+                (_visual.Mesh as CylinderMesh).BottomRadius = GetAreaRadius();
                 return true;
             case TemporaryUpgradeEffect.FireDuration:
                 _durationBonus += upgrade.Amount; return true;
@@ -109,4 +111,6 @@ public partial class GroundFireAttack : Node3D, ITemporaryUpgradeReceiver
             default: return false;
         }
     }
+
+    private float GetAreaRadius() => (Radius + _radiusBonus) * (GetParent<Player>()?.PassiveAreaMultiplier ?? 1f);
 }

@@ -31,7 +31,16 @@ public partial class FaithSurgePickup : Area3D
         if (_collected || body is not Player player || player.IsDead) return;
         _collected = true;
         SetDeferred("monitoring", false);
-        GetNode<GameManager>("/root/GameManager").ActivateExperienceVacuum(player);
+        GameManager gameManager = GetNode<GameManager>("/root/GameManager");
+        gameManager.ActivateExperienceVacuum(player);
+        ColorRect flash = GetTree().CurrentScene.GetNodeOrNull<ColorRect>("HUD/PlayerDamageFlash");
+        if (flash != null)
+        {
+            Color previousColor = flash.Color;
+            flash.Color = new Color(1f, 0.78f, 0.15f, 0.3f);
+            Tween flashTween = flash.CreateTween();
+            flashTween.TweenProperty(flash, "color", previousColor, 0.28f);
+        }
         Tween surgeTween = CreateTween();
         surgeTween.TweenProperty(_visual, "scale", Vector3.Zero, 0.16f);
         surgeTween.TweenCallback(Callable.From(QueueFree));

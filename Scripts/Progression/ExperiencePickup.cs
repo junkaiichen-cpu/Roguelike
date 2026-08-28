@@ -20,6 +20,8 @@ public partial class ExperiencePickup : Area3D
     private MeshInstance3D _mesh;
     private Vector3 _baseMeshScale;
 
+    public event Action<ExperiencePickup> Finished;
+
     public void AddExperience(uint experience)
     {
         ExperienceValue = uint.MaxValue - ExperienceValue < experience
@@ -31,7 +33,16 @@ public partial class ExperiencePickup : Area3D
 
     public void StartVacuum(Player player)
     {
-        if (_wasCollected || player == null || player.IsDead) return;
+        if (player == null || player.IsDead) return;
+
+        if (_attractedPlayer != null)
+        {
+            _isVacuuming = true;
+            _attractionElapsed = 0;
+            return;
+        }
+
+        if (_wasCollected) return;
         _wasCollected = true;
         SetDeferred("monitoring", false);
         _attractedPlayer = player;
@@ -53,6 +64,12 @@ public partial class ExperiencePickup : Area3D
         _baseMeshScale = _mesh.Scale;
         UpdateVisual();
         BodyEntered += OnBodyEntered;
+    }
+
+    public override void _ExitTree()
+    {
+        Finished?.Invoke(this);
+        base._ExitTree();
     }
 
     public override void _PhysicsProcess(double delta)
